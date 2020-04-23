@@ -53,6 +53,7 @@ df_ppt.plot(x='Temperature', y='Net hourly electrical energy output',kind='scatt
 df_ppt['Relative Humidity'].hist();
 
 # plot box plots for each variable
+
 df_ppt.plot(kind='box', figsize=(15,15));
     ##all box plots on one graph
 
@@ -62,3 +63,6 @@ df['pressure'].plot(kind='box');
 df['humidity'].plot(kind='box');
 df['energy_output'].plot(kind='box');
     ##separate box plats for each variable
+
+
+
