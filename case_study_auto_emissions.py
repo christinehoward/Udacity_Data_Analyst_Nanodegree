@@ -239,5 +239,129 @@ df_08["air_pollution_score"] = df_08["air_pollution_score"].astype(float)
 
 # convert int to float for 2018 air pollution column
 df_18["air_pollution_score"] = df_18["air_pollution_score"].astype(float)
+
+# save
 df_08.to_csv('data_08_v4.csv', index=False)
 df_18.to_csv('data_18_v4.csv', index=False)
+
+
+# Fixing Data Types Part 3
+# In this last section, you'll fix datatypes of columns for mpg and greenhouse gas score.
+# After you complete these final fixes, check the datatypes of all features in both datasets to confirm success for all the changes we specified earlier. Here they are again for your reference:
+
+# load datasets
+import pandas as pd
+df_08 = pd.read_csv('data_08_v4.csv')
+df_18 = pd.read_csv('data_18_v4.csv')
+
+# convert mpg columns to floats
+mpg_columns = ['city_mpg', 'hwy_mpg', 'cmb_mpg']
+for c in mpg_columns:
+    df_18[c] = df_18[c].astype(float)
+    df_08[c] = df_08[c].astype(float)
+
+# Fix greenhouse_gas_score datatype
+# 2008: convert from float to int
+
+# convert from float to int
+df_08['greenhouse_gas_score'] = df_08['greenhouse_gas_score'].astype(int)
+
+# All the dataypes are now fixed! Take one last check to confirm all the changes.¶
+df_08.dtypes == df_18.dtypes
+
+# Save your final CLEAN datasets as new files!
+df_08.to_csv('clean_08.csv', index=False)
+df_18.to_csv('clean_18.csv', index=False)
+
+
+# Drawing Conclusions
+# Use the space below to address questions on datasets clean_08.csv and clean_18.csv
+
+import pandas as pd
+import matplotlib.pyplot as plt
+% matplotlib inline
+
+# load datasets
+df_08 = pd.read_csv('clean_08.csv')
+df_18 = pd.read_csv('clean_18.csv')
+
+Q1: Are more unique models using alternative sources of fuel? By how much?
+Let's first look at what the sources of fuel are and which ones are alternative sources.
+
+df_08.fuel.value_counts()
+Gasoline    984
+gas           1
+ethanol       1
+CNG           1
+Name: fuel, dtype: int64
+df_18.fuel.value_counts()
+Gasoline       749
+Gas             26
+Ethanol         26
+Diesel          19
+Electricity     12
+# Name: fuel, dtype: int64
+# Looks like the alternative sources of fuel available in 2008 are CNG and ethanol, and those in 2018 ethanol and electricity. 
+# (You can use Google if you weren't sure which ones are alternative sources of fuel!)
+
+# how many unique models used alternative sources of fuel in 2008
+alt_08 = df_08.query('fuel in ["CNG", "ethanol"]').model.nunique()
+alt_08
+
+# how many unique models used alternative sources of fuel in 2018
+alt_18 = df_18.query('fuel in ["Ethanol", "Electricity"]').model.nunique()
+alt_18
+
+plt.bar(["2008", "2018"], [alt_08, alt_18])
+plt.title("Number of Unique Models Using Alternative Fuels")
+plt.xlabel("Year")
+plt.ylabel("Number of Unique Models");
+
+# Since 2008, the number of unique models using alternative sources of fuel increased by 24. We can also look at proportions.
+
+# total unique models each year
+total_08 = df_08.model.nunique()
+total_18 = df_18.model.nunique()
+total_08, total_18
+
+prop_08 = alt_08/total_08
+prop_18 = alt_18/total_18
+prop_08, prop_18
+
+plt.bar(["2008", "2018"], [prop_08, prop_18])
+plt.title("Proportion of Unique Models Using Alternative Fuels")
+plt.xlabel("Year")
+plt.ylabel("Proportion of Unique Models");
+
+
+# Q2: How much have vehicle classes improved in fuel economy?
+# Let's look at the average fuel economy for each vehicle class for both years.
+
+veh_08 = df_08.groupby('veh_class').cmb_mpg.mean()
+veh_08
+
+veh_18 = df_18.groupby('veh_class').cmb_mpg.mean()
+veh_18
+
+# how much they've increased by for each vehicle class
+inc = veh_18 - veh_08
+inc
+
+# only plot the classes that exist in both years
+inc.dropna(inplace=True)
+plt.subplots(figsize=(8, 5))
+plt.bar(inc.index, inc)
+plt.title('Improvements in Fuel Economy from 2008 to 2018 by Vehicle Class')
+plt.xlabel('Vehicle Class')
+plt.ylabel('Increase in Average Combined MPG');
+
+
+# Q3: What are the characteristics of SmartWay vehicles? Have they changed over time?
+# We can analyze this by filtering each dataframe by SmartWay classification and exploring these datasets.
+
+# smartway labels for 2008
+df_08.smartway.unique()
+# get all smartway vehicles in 2008
+smart_08 = df_08.query('smartway == "yes"')
+# explore smartway vehicles in 2008
+smart_08.describe()
