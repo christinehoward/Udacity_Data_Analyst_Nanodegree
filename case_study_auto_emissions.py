@@ -285,8 +285,8 @@ import matplotlib.pyplot as plt
 df_08 = pd.read_csv('clean_08.csv')
 df_18 = pd.read_csv('clean_18.csv')
 
-Q1: Are more unique models using alternative sources of fuel? By how much?
-Let's first look at what the sources of fuel are and which ones are alternative sources.
+# Q1: Are more unique models using alternative sources of fuel? By how much?
+# Let's first look at what the sources of fuel are and which ones are alternative sources.
 
 df_08.fuel.value_counts()
 Gasoline    984
@@ -300,7 +300,7 @@ Gas             26
 Ethanol         26
 Diesel          19
 Electricity     12
-# Name: fuel, dtype: int64
+Name: fuel, dtype: int64
 # Looks like the alternative sources of fuel available in 2008 are CNG and ethanol, and those in 2018 ethanol and electricity. 
 # (You can use Google if you weren't sure which ones are alternative sources of fuel!)
 
@@ -350,7 +350,7 @@ inc
 # only plot the classes that exist in both years
 inc.dropna(inplace=True)
 plt.subplots(figsize=(8, 5))
-plt.bar(inc.index, inc)
+plt.bar(inc.index, inc) ## renan
 plt.title('Improvements in Fuel Economy from 2008 to 2018 by Vehicle Class')
 plt.xlabel('Vehicle Class')
 plt.ylabel('Increase in Average Combined MPG');
@@ -359,9 +359,95 @@ plt.ylabel('Increase in Average Combined MPG');
 # Q3: What are the characteristics of SmartWay vehicles? Have they changed over time?
 # We can analyze this by filtering each dataframe by SmartWay classification and exploring these datasets.
 
-# smartway labels for 2008
+# smartway labels for 2008 - 13.3 renan
 df_08.smartway.unique()
 # get all smartway vehicles in 2008
 smart_08 = df_08.query('smartway == "yes"')
 # explore smartway vehicles in 2008
 smart_08.describe()
+# smartway labels for 2018
+df_18.smartway.unique()
+# get all smartway vehicles in 2018
+smart_18 = df_18.query('smartway in ["Yes", "Elite"]')
+smart_18.describe()
+
+
+### Q4: What features are associated with better fuel economy?
+# You can explore trends between cmb_mpg and the other features in this dataset, or filter this dataset like in the previous question and explore the properties of that dataset. 
+# For example, you can select all vehicles that have the top 50% fuel economy ratings like this.
+
+top_08 = df_08.query('cmb_mpg > cmb_mpg.mean()')
+top_08.describe()
+
+top_18 = df_18.query('cmb_mpg > cmb_mpg.mean()')
+top_18.describe()
+
+
+# Q5: For all of the models that were produced in 2008 that are still being produced in 2018, how much has the mpg improved and which vehicle improved the most?
+# This is a question regarding models that were updated since 2008 and still being produced in 2018. In order to do this, we need a way to compare models that exist in both datasets. To do this, let's first learn about merges.
+
+# Merging Datasets
+## Merging Datasets
+## Use pandas Merges to create a combined dataset from `clean_08.csv` and `clean_18.csv`. You should've created these data files in the previous section: *Fixing Data Types Pt 3*.
+
+# load datasets
+import pandas as pd
+df_08 = pd.read_csv('clean_08.csv')
+df_18 = pd.read_csv('clean_18.csv')
+
+### Create combined dataset
+# rename 2008 columns
+df_08.rename(columns=lambda x: x[:10] + "_2008", inplace=True)
+
+# merge datasets renan
+df_combined = df_08.merge(df_18, left_on='model_2008', right_on='model', how='inner')
+
+# view to check merge
+df_combined.head()
+
+# save
+df_combined.to_csv('combined_dataset.csv', index=False)
+
+
+# Results with Merged Dataset
+#### Q5: For all of the models that were produced in 2008 that are still being produced now, how much has the mpg improved and which vehicle improved the most?
+# Remember to use your new dataset, `combined_dataset.csv`. You should've created this data file in the previous section: *Merging Datasets*.
+
+# load dataset
+import pandas as pd
+df = pd.read_csv('combined_dataset.csv')
+
+# 1. Create a new dataframe, model_mpg, that contain the mean combined mpg values in 2008 and 2018 for each unique model
+# To do this, group by model and find the mean cmb_mpg_2008 and mean cmb_mpg for each.
+
+model_mpg = df.groupby('model').mean()[['cmb_mpg_2008', 'cmb_mpg']]
+model_mpg.head()
+
+# 2. Create a new column, mpg_change, with the change in mpg
+# Subtract the mean mpg in 2008 from that in 2018 to get the change in mpg
+
+model_mpg['mpg_change'] = cmb_mpg - cmb_mpg_2008
+model_mpg['mpg_change'] = model_mpg['cmb_mpg'] - model_mpg['cmb_mpg_2008']
+model_mpg.head()
+
+# 3. Find the vehicle that improved the most
+# Find the max mpg change, and then use query or indexing to see what model it is!
+
+max_change = model_mpg['mpg_change'].max()
+max_change
+# output: 16.533333333333339
+
+model_mpg[model_mpg['mpg_change'] == max_change]
+# cmb_mpg_2008	cmb_mpg	mpg_change
+# model			
+# VOLVO XC 90	15.666667	32.2	16.533333
+Pandas also has a useful idxmax function you can use to find the index of the row containing a column's maximum value!
+
+idx = model_mpg.mpg_change.idxmax()
+idx
+# 'VOLVO XC 90'
+# model_mpg.loc[idx]
+# cmb_mpg_2008    15.666667
+# cmb_mpg         32.200000
+# mpg_change      16.533333
+# Name: VOLVO XC 90, dtype: float64
