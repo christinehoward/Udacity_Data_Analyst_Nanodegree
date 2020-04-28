@@ -376,3 +376,268 @@ plt.hist(sample_props, alpha=.5);
 plt.hist(np.array(sample_props_20), alpha=.5);
 
 # Notice the 20 is much more normally distributed than the 5
+
+
+# Bootstrap Sampling
+# Below is an array of the possible values you can obtain from a die. Let's consider different methods of sampling from these values.
+
+import numpy as np
+np.random.seed(42)
+​
+die_vals = np.array([1,2,3,4,5,6])
+Take a random sample of 20 values from die_vals using the code below, then answer the question in the first quiz below.
+np.random.choice(die_vals, size=20)
+array([4, 5, 3, 5, 5, 2, 3, 3, 3, 5, 4, 3, 6, 5, 2, 4, 6, 6, 2, 4])
+
+
+# Building confidence interval
+
+import numpy as np
+import pandas as pd 
+import matplotlib.pyplot as plt 
+
+coffee_full = pd.read_csv...
+coffee_red = coffee_full.sample(200)
+
+coffee_red.shape
+coffee_full.shape 
+coffee_red.drinks_coffee.mean()
+# output: 0.56999
+coffee_red[coffee_red['drinks_coffee'] == True]['height'].mean()
+# output: 68.5202
+
+bootsample = coffee_red.sample(200, replace=True)
+bootsample[bootsample['drinks_coffee'] == True]['height'].mean()
+
+boot_means = []
+for _ in range(10000):
+   bootsample = coffee_red.sample(200, replace=True)
+   boot_means.append(bootsample[bootsample['drinks_coffee'] == True]['height'].mean()) 
+
+plt.hist(boot_means);
+
+np.percentile(boot_means, 2.5), np.percentile(boot_means, 97.5)
+# output: 68.0595, 68.9652
+# the 2.5 is the amount of the bell curve we will cut off from each side
+
+# confidence interval interpretation:
+## we are 95% confident the mean height of all coffee drinkers is between 68.06 and 68.97 inches tall
+
+# the mean of the population was 68.4002
+coffee_full[coffee_full('drinks_coffee') == True]['height'].mean()
+
+
+# Confidence Intervals - Part I
+# First let's read in the necessary libraries and the dataset. You also have the full and reduced versions of the data available. The reduced version is an example of you would actually get in practice, as it is the sample. While the full data is an example of everyone in your population.
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+%matplotlib inline
+​
+np.random.seed(42)
+​
+coffee_full = pd.read_csv('../data/coffee_dataset.csv')
+coffee_red = coffee_full.sample(200) #this is the only data you might actually get in the real world.
+
+# 1. What is the proportion of coffee drinkers in the sample? What is the proportion of individuals that don't drink coffee?
+coffee_red['drinks_coffee'].mean() # Drink Coffee
+0.59499999999999997
+1 - coffee_red['drinks_coffee'].mean() # Don't Drink Coffee
+0.40500000000000003
+
+# Confidence Intervals - Part I
+# First let's read in the necessary libraries and the dataset. You also have the full and reduced versions of the data available. The reduced version is an example of you would actually get in practice, as it is the sample. While the full data is an example of everyone in your population.
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+%matplotlib inline
+​
+np.random.seed(42)
+​
+coffee_full = pd.read_csv('../data/coffee_dataset.csv')
+coffee_red = coffee_full.sample(200) #this is the only data you might actually get in the real world.
+
+# 1. What is the proportion of coffee drinkers in the sample? 
+# What is the proportion of individuals that don't drink coffee?
+coffee_red['drinks_coffee'].mean() # Drink Coffee
+0.59499999999999997
+1 - coffee_red['drinks_coffee'].mean() # Don't Drink Coffee
+0.40500000000000003
+
+# 2. Of the individuals who do not drink coffee, what is the average height?
+coffee_red[coffee_red['drinks_coffee'] == False]['height'].mean()
+66.78492279927877
+
+# 3. Simulate 200 "new" individuals from your original sample of 200. What are the proportion of coffee drinkers in your bootstrap sample? How about individuals that don't drink coffee?
+bootsamp = coffee_red.sample(200, replace = True)
+bootsamp['drinks_coffee'].mean() # Drink Coffee and 1 minus gives the don't drink
+0.60499999999999998
+
+# 4. Now simulate your bootstrap sample 10,000 times and take the mean height of the non-coffee drinkers in each sample. 
+# Plot the distribution, and pull the values necessary for a 95% confidence interval. 
+# What do you notice about the sampling distribution of the mean in this example?
+boot_means = []
+for _ in range(10000):
+    bootsamp = coffee_red.sample(200, replace = True)
+    boot_mean = bootsamp[bootsamp['drinks_coffee'] == False]['height'].mean()
+    boot_means.append(boot_mean)
+    
+plt.hist(boot_means); # Looks pretty normal
+
+np.percentile(boot_means, 2.5), np.percentile(boot_means, 97.5)
+(65.992913281575198, 67.584027382815734)
+​
+# 5. Did your interval capture the actual average height of coffee drinkers in the population? 
+# Look at the average in the population and the two bounds provided by your 95% confidence interval, and then answer the final quiz question below.
+coffee_full[coffee_full['drinks_coffee'] == False]['height'].mean() 
+66.44340776214705
+# Captured by our interval, but not the exact same as the sample mean
+coffee_red[coffee_red['drinks_coffee'] == False]['height'].mean()
+66.78492279927877
+
+
+# Screencast: difference in means
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+%matplotlib inline
+​
+coffee_full = pd.read_csv('coffee-dataset.csv')
+coffee_red = coffee_full.sample(200)
+
+# Question: what's the difference in mean height for coffee versus non-coffee drinkers
+# in order to build confidence interval for the difference in the average heights for these 2 groups
+# we can do something similar to what we have already done, but for each iteration of taking the mean for each group,
+# we are also going to take the difference
+
+bootsample = coffee_red.sample(200, replace=True)
+mean_coff = bootsample[bootsample['drinks_coffee'] == True]['height'].mean()
+mean_nocoff = bootsample[bootsample['drinks_coffee'] == False]['height'].mean()
+mean_coff - mean_nocoff
+# output: 1.96
+
+# now we can iterate this process some large number of times and use the resulting differences to build a confidence interval for the difference in the means
+diff = []
+for _ in range(10000):
+    bootsample = coffee_red.sample(200, replace=True)
+    mean_coff = bootsample[bootsample['drinks_coffee'] == True]['height'].mean()
+    mean_nocoff = bootsample[bootsample['drinks_coffee'] == False]['height'].mean()
+    mean_coff - mean_nocoff
+# set up difference list and we will append differences into it
+# the difference in means for a single iteration of a bootstrap sample is stored in diff
+
+# could again plot the difference in means for the 2 groups
+plt.hist(diff)
+
+# could cut off the top and bottom 2.5% to achieve 95% confidence interval
+# where we believe the difference in the 2 means to exist
+
+np.percentile(diff, 2.5), np.percentile(diff, 97.5)
+# output: 0.5854, 2.3687
+
+# because 0 is not included in the interval, this would suggest a difference in the population means
+
+# conclusion: since a confidence interval for mean_coff-mean_nocoff is (0.59, 2.37), 
+# we have evidence of the mean height for coffee drinkers is larger than non-coffee drinkers
+
+
+# Confidence Interval - Difference In Means
+# Here you will look through the example for the last video, but you will also go a couple of steps further into what might actually be going on with this data.
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+​
+%matplotlib inline
+np.random.seed(42)
+​
+full_data = pd.read_csv('../data/coffee_dataset.csv')
+sample_data = full_data.sample(200)
+
+# 1. For 10,000 iterations, bootstrap sample your sample data, compute the difference in the average heights for coffee and non-coffee drinkers. Build a 99% confidence interval using your sampling distribution. Use your interval to start answering the first quiz question below.
+diffs = []
+for _ in range(10000):
+    bootsamp = sample_data.sample(200, replace = True)
+    coff_mean = bootsamp[bootsamp['drinks_coffee'] == True]['height'].mean()
+    nocoff_mean = bootsamp[bootsamp['drinks_coffee'] == False]['height'].mean()
+    diffs.append(coff_mean - nocoff_mean)
+    
+np.percentile(diffs, 0.5), np.percentile(diffs, 99.5) 
+# statistical evidence coffee drinkers are on average taller
+(0.10258900080921124, 2.5388333707966568)
+
+
+# 2. For 10,000 iterations, bootstrap sample your sample data, compute the difference in the average heights for those older than 21 and those younger than 21. Build a 99% confidence interval using your sampling distribution. Use your interval to finish answering the first quiz question below.
+
+diffs_age = []
+for _ in range(10000):
+    bootsamp = sample_data.sample(200, replace = True)
+    under21_mean = bootsamp[bootsamp['age'] == '<21']['height'].mean()
+    over21_mean = bootsamp[bootsamp['age'] != '<21']['height'].mean()
+    diffs_age.append(over21_mean - under21_mean)
+    
+np.percentile(diffs_age, 0.5), np.percentile(diffs_age, 99.5)
+# statistical evidence that over21 are on average taller
+(3.3652749452554795, 5.0932450670661495)
+
+
+# 3. For 10,000 iterations bootstrap your sample data, compute the difference in the average height for coffee drinkers and the average height non-coffee drinkers for individuals under 21 years old. Using your sampling distribution, build a 95% confidence interval. Use your interval to start answering question 2 below.
+
+diffs_coff_under21 = []
+for _ in range(10000):
+    bootsamp = sample_data.sample(200, replace = True)
+    under21_coff_mean = bootsamp.query("age == '<21' and drinks_coffee == True")['height'].mean()
+    under21_nocoff_mean = bootsamp.query("age == '<21' and drinks_coffee == False")['height'].mean()
+    diffs_coff_under21.append(under21_nocoff_mean - under21_coff_mean)
+    
+np.percentile(diffs_coff_under21, 2.5), np.percentile(diffs_coff_under21, 97.5)
+# For the under21 group, we have evidence that the non-coffee drinkers are on average taller
+(1.0593651244624267, 2.5931557940679042)
+
+# 4. For 10,000 iterations bootstrap your sample data, compute the difference in the average height for coffee drinkers and the average height non-coffee drinkers for individuals under 21 years old. Using your sampling distribution, build a 95% confidence interval. Use your interval to finish answering the second quiz question below. As well as the following questions.
+diffs_coff_over21 = []
+for _ in range(10000):
+    bootsamp = sample_data.sample(200, replace = True)
+    over21_coff_mean = bootsamp.query("age != '<21' and drinks_coffee == True")['height'].mean()
+    over21_nocoff_mean = bootsamp.query("age != '<21' and drinks_coffee == False")['height'].mean()
+    diffs_coff_over21.append(over21_nocoff_mean - over21_coff_mean)
+    
+np.percentile(diffs_coff_over21, 2.5), np.percentile(diffs_coff_over21, 97.5)
+# For the over21 group, we have evidence that on average the non-coffee drinkers are taller
+(1.8278953970883667, 4.4026329654774337)
+# Within the under 21 and over 21 groups, we saw that on average non-coffee drinkers were taller. But, when combined, we saw that on average coffee drinkers were on average taller. This is again Simpson's paradox, and essentially there are more adults in the dataset who were coffee drinkers. So these individuals made it seem like coffee drinkers were on average taller - which is a misleading result.
+# A larger idea for this is the idea of confounding variables altogether. You will learn even more about these in the regression section of the course.
+
+​
+# Traditional confidence intervals
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+​
+%matplotlib inline
+np.random.seed(42)
+​
+full_data = pd.read_csv('coffee_dataset.csv')
+sample_data = full_data.sample(200)
+
+# looking at difference in means with bootstrap approach from earlier
+diff = []
+for _ in range(10000):
+    bootsample = coffee_red.sample(200, replace = True)
+    mean_coff = bootsample[bootsample['drinks_coffee'] -- True]['height'].mean()
+    mean_nocoff = bootsample[bootsample['drinks_coffee'] == False]['height'].mean()
+    diff.append(mean_coff - mean_nocoff)
+np.percentile(diff, 2.5), np.percentile(diff, 97.5)
+
+# other option:
+import statsmodels.stats.api as sms 
+X1 = coffee_red[coffee_red['drinks_coffee'] == True]['height']
+X2 = coffee_red[coffee_red['drinks_coffee'] == False]['height']
+
+cm = sms.CompareMeans(sms.DescStatsW(X1), sms.DescrStatsW(X2))
+cm.tconfint_diff(usevar='unequal')
+
+
