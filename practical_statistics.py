@@ -641,3 +641,193 @@ cm = sms.CompareMeans(sms.DescStatsW(X1), sms.DescrStatsW(X2))
 cm.tconfint_diff(usevar='unequal')
 
 
+
+# Using a confidence interval to make a decision
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+​
+%matplotlib inline
+np.random.seed(42)
+​
+full_data = pd.read_csv('coffee_dataset.csv')
+# sample_data = full_data.sample(200)
+
+# Question: is the average height of all individuals in the coffee dataset greater than 70 inches?
+H0 : mean <= 70
+H1 : mean > 70
+
+# achieve this sample from our data set
+sample_df = df.sample(150)
+# we can bootstrap this in the following way
+bootsample = sample_df.sample(150, replace=True)
+
+# bootstrap a number of times, and bootstrap the means for each sample
+means = [] # created a vector of means, which we will enter each of our bootstrap means into
+for _ in range(10000):
+    bootsample = sample_df.sample(150, replace=True) # here we have our bootstrap sample
+    means.append(boot_mean = bootsample.height.mean())
+# now we have all of our means and can create a confidence interval
+np.percentile(means, 2.5), np.percentile(means, 97.5)
+# lower bound, upper bound
+# might want to plot these
+plt.hist(means);
+plt.axvline(x=low, color='r', linewidth=2);
+plt.axvline(x=high, color='r', linewidth=2);
+# x=low == lower, x=high == upper
+
+
+# Simulating from the null
+# in hypothesis testing, we first simulate from the closest value to the alternative that is still in the null space
+# could use std dev of the sample distribution to determine what the sampling distribution would look like coming from the null hypothesis
+# we will simulate from a normal distribution in this case 
+# code used in last example:
+sample_df = df.sample(150)
+
+means = []
+for _ in range(10000):
+    bootsample = sample_df.sample(150, replace=True)
+    means.append(bootsample.height.mean())
+
+np.std(means)
+# result: 0.2658 == std deviation of our sampling distribution
+
+# numpy.random.normal documentation
+numpy.random.normal(loc=0.0, scale=1.0, size=None)
+    # loc = the mean, in this case 70
+    # scale = std dev of our sampling distribution
+    # size = number of values we want to simulate (10000 for example)
+
+null_vals = np.random.normal(70, np.std(means), 10000)
+plt.hist(null_vals);
+
+# each of the simulated draws here represents a possible mean from the null hypothesis
+# where does the sample mean fall in this distribution?
+
+sample_df.height.mean()
+# output: 67.633
+# this mean falls far outside the distribution from the null
+# if the sample mean were to fall closer to the center value of 70, it would be a value that we would expect from the null hypothesis
+# therefore we would think the null would be more likely to be true
+# in this case, with our sample mean so far out in the tail, it's far enough that we think it likely did not come from our null hypothesized value
+# comparing the actual sample mean to this distribution tells us the likelihood of our statistic coming from the null
+
+
+# Simulating From the Null Hypothesis
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+​
+%matplotlib inline
+np.random.seed(42)
+​
+full_data = pd.read_csv('coffee_dataset.csv')
+sample_data = full_data.sample(200)
+
+# 1. If you were interested in studying whether the average height for coffee drinkers is the same as for non-coffee drinkers, what would the null and alternative hypotheses be? Write them in the cell below, and use your answer to answer the first quiz question below.
+# Since there is no directional component associated with this statement, a not equal to seems most reasonable.
+
+# 𝐻0:𝜇𝑐𝑜𝑓𝑓−𝜇𝑛𝑜=0
+# 𝐻1:𝜇𝑐𝑜𝑓𝑓−𝜇𝑛𝑜≠0
+# 𝜇𝑐𝑜𝑓𝑓 and 𝜇𝑛𝑜 are the population mean values for coffee drinkers and non-coffee drinkers, respectivley.
+
+# 2. If you were interested in studying whether the average height for coffee drinkers is less than non-coffee drinkers, what would the null and alternative be? Place them in the cell below, and use your answer to answer the second quiz question below.
+# In this case, there is a question associated with a direction - that is the average height for coffee drinkers is less than non-coffee drinkers. Below is one of the ways you could write the null and alternative. Since the mean for coffee drinkers is listed first here, the alternative would suggest that this is negative.
+
+# 𝐻0:𝜇𝑐𝑜𝑓𝑓−𝜇𝑛𝑜≥0
+# 𝐻1:𝜇𝑐𝑜𝑓𝑓−𝜇𝑛𝑜<0
+# 𝜇𝑐𝑜𝑓𝑓 and 𝜇𝑛𝑜 are the population mean values for coffee drinkers and non-coffee drinkers, respectivley.
+
+# 3. For 10,000 iterations: bootstrap the sample data, calculate the mean height for coffee drinkers and non-coffee drinkers, and calculate the difference in means for each sample. You will want to have three arrays at the end of the iterations - one for each mean and one for the difference in means. Use the results of your sampling distribution, to answer the third quiz question below.
+
+nocoff_means, coff_means, diffs = [], [], []
+​
+for _ in range(10000):
+    bootsamp = sample_data.sample(200, replace = True)
+    coff_mean = bootsamp[bootsamp['drinks_coffee'] == True]['height'].mean()
+    nocoff_mean = bootsamp[bootsamp['drinks_coffee'] == False]['height'].mean()
+    # append the info 
+    coff_means.append(coff_mean)
+    nocoff_means.append(nocoff_mean)
+    diffs.append(coff_mean - nocoff_mean)   
+    
+np.std(nocoff_means) # the standard deviation of the sampling distribution for nocoff
+0.40512631277475264
+np.std(coff_means) # the standard deviation of the sampling distribution for coff
+0.24073763373473001
+np.std(diffs) # the standard deviation for the sampling distribution for difference in means
+0.46980910743871468
+plt.hist(nocoff_means, alpha = 0.5);
+plt.hist(coff_means, alpha = 0.5); # They look pretty normal to me!
+
+plt.hist(diffs, alpha = 0.5); # again normal - this is by the central limit theorem
+
+# 4. Now, use your sampling distribution for the difference in means and the docs to simulate what you would expect if your sampling distribution were centered on zero. 
+# Also, calculate the observed sample mean difference in sample_data. Use your solutions to answer the last questions in the quiz below.
+# We would expect the sampling distribution to be normal by the Central Limit Theorem, and we know the standard deviation 
+# of the sampling distribution of the difference in means from the previous question, so we can use this to simulate draws 
+# from the sampling distribution under the null hypothesis. If there is truly no difference, then the difference between the means should be zero.
+
+null_vals = np.random.normal(0, np.std(diffs), 10000) # Here are 10000 draws from the sampling distribution under the null
+plt.hist(null_vals); #Here is the sampling distribution of the difference under the null
+
+
+# Finding the p-value
+
+# understanding p-values involves sampling distributions, and conditional probability
+# p-value dependent on the alternative hypothesis as it determines what is considered more extreme
+
+# P-Value:
+    ## if H0 is true, the probability of obtaining the observed statistic or one more extreme in favor of the alternative hypothesis
+
+# Calculating the p-value
+# imagine we have the alternative hypothesis that the population mean is greater than 70
+sample_mean = sample_df.height.mean()
+# output: 67.633
+
+# then we could calculate the p-value as the proportion of the simulated draws that are larger than our sample mean
+(null_vals > sample_mean).mean()
+# output: 1
+# this means, we should stay with the mean being less than 70 as the value is small
+
+# if our hypotheses looked like this instead, we would calculate p-value differently
+H0: mean >= 70
+H1: mean < 70
+(null_vals < sample_mean).mean()
+# because our alternative is < 70, would now look at shaded region to the left of our statistic
+# p-value is 0, suggesting we reject the null hypothesis in favor of the alternative
+# this suggests the pop mean is less than 70
+
+H0: mean = 70
+H1: mean != 70
+null_mean = 70
+(null_vals < sample_mean).mean() + (null_vals > null_mean + (null_mean - sample_mean)).mean()
+
+# graphing:
+low = sample_mean 
+high = null_mean + (null_mean - sample_mean)
+
+plt.hist(null_vals);
+plt.axvline(x=low, color='r', linewidth=2)
+plt.axvline(x=high, color='r', linewidth=2)
+
+# evidence to suggest the null hypothesized value did not generate our sample statistic
+
+# a small p-value suggests it is less likely to observe our statistic from the null
+    ## therefore, choose alternative (H1)
+# a large p-value suggests it is more likely to observe our statistic from the null
+    # therefore, choose null (H0)
+
+# if you are willing to make 5% errors where you choose the alternative incorrectly,
+# then your p-value needs to be smaller than this threshold in order to choose the alternative
+# however, if your probability of getting the data from the null is 8%, this enough of a chance, where we would stay with the null
+
+# if our p-value is less than the type1 error rate, then we should reject the null, choose alt
+# if p-value greater than than the type1 error rate, then we fail to reject the null, and choose null
+
+# H0 is the default
+# all are innocent until proven guilty, guilty or not guilty
+# either reject null hypothesis, or fail to reject the null hypothesis
+
