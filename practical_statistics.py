@@ -831,3 +831,238 @@ plt.axvline(x=high, color='r', linewidth=2)
 # all are innocent until proven guilty, guilty or not guilty
 # either reject null hypothesis, or fail to reject the null hypothesis
 
+
+# Calulating errors
+
+import numpy as np
+import pandas as pd
+
+jud_data = pd.read_csv('judicial_dataset_predictions.csv')
+par_data = pd.read_csv('parachute_dataset.csv')
+
+jud_data.head()
+par_data.head()
+
+# 1. Above, you can see the actual and predicted columns for each of the datasets. 
+# Using the jud_data, find the proportion of errors for the dataset, and furthermore, the percentage of errors of each type.
+
+jud_data[jud_data['actual'] != jud_data['predicted']].shape[0]/jud_data.shape[0] # number of errors
+# output: 0.04215
+
+jud_data.query("actual == 'innocent' and predicted == 'guilty'").count()[0]/jud_data.shape[0] # type 1 errors
+# output: .0015
+
+jud_data.query("actual == 'guilty' and predicted =='innocent'").count()[0]/jud_data.shape[0] # type 2 errors
+# output: 0.0406
+
+# if everyone was predicted to be guilty, then every actual innocent person would be a type 1 error
+# type 1 = pred guilty but actually innocent
+
+jud_data[jud_data['actual'] == 'innocent'].shape[0]/jud_data.shape[0]
+# output: 0.4516
+
+# if everyone has prediction of guilty the no one is predicted innocent
+# therefore there would be no type 2 errors
+# type 2 errors = pred innocent but actually guilty
+# output = 0
+
+# 2. Using the par_data, find the proportion of errors for the dataset, and furthermore, the percentage of errors of each type. Use the results to answer the questions in quiz 2 below.
+
+result = par_data['actual'] != par_data['predicted']
+print(result)
+par_data[result].shape[0]/par_data.shape[0] # of errors
+0.039972551037913875
+
+par_data.query("actual == 'opens' and predicted == 'fails'").count()[0]/par_data.shape[0] # type 2
+0.039800995024875621
+
+par_data.query("actual == 'fails' and predicted == 'opens'").count()[0]/par_data.shape[0] # type 1
+0.00017155601303825698
+
+
+# If every parachute is predicted to fail, what is the proportion
+# of type I errors made?
+​
+# Type I = pred open, but actual = fail
+# In the above situation since we have none predicted to open,
+# we have no type I errors
+​0
+0
+# If every parachute is predicted to fail, what is
+# the proportion of Type II Errors made?  
+​
+# This would just be the total of actual opens in the dataset, 
+# as we would label these all as fails, but actually they open
+​
+# Type II = pred fail, but actual = open
+par_data[par_data['actual'] == 'opens'].shape[0]/par_data.shape[0]
+0.9917653113741637
+
+
+# What is the impact of sample size?
+
+# 2. What is the population mean? Create a sample set of data using the below code. 
+# What is the sample mean? What is the standard deviation of the population? 
+# What is the standard deviation of the sampling distribution of the mean of five draws? 
+# Simulate the sampling distribution for the mean of five values to see the shape and plot a histogram.
+
+sample1 = full_data.sample(5)
+sample1
+
+full_data.height.mean() # population mean
+# out: 67.5975
+
+sample1.height.mean() # sample mean
+# out: 67.8823
+
+sampling_dist_mean5 = []
+sample_of_5 = sample1.sample(5, replace = True)
+sample_mean = sample_of_5.height.mean()
+sampling_dist_mean5.append(sample_mean)
+
+plt.hist(sampling_dist_mean5);
+
+std_sampling_dist = np.std(sampling_dist_mean5)
+std_sampling_dist # standard deviation of the sampling distribution
+# out: 1.1414
+
+# 3. Using your null and alternative hypotheses as set up in question 1 and the results of your sampling distribution in question 2, 
+# simulate values of the mean values that you would expect from the null hypothesis. 
+# Use these simulated values to determine a p-value to make a decision about your null and alternative hypotheses.
+
+null_mean = 67.60 # population mean from above
+null_vals = np.random.normal(null_mean, std_sampling_dist, 10000)
+
+plt.hist(null_vals);
+plt.axvline(x=sample1.height.mean(), color = 'red'); # where our sample mean falls on null dist
+
+# for a two sided hypothesis, we want to look at anything 
+# more extreme from the null in both directions
+obs_mean = sample1.height.mean()
+# out: 67.8823425205
+
+# # probability of a statistic higher than observed
+prob_more_extreme_high = (null_vals > obs_mean).mean()
+# out: 0.4071
+
+# # probability a statistic is more extreme lower
+prob_more_extreme_low = (null_mean - (obs_mean - null_mean) < null_vals).mean()
+# out: 0.6021
+
+pval = prob_more_extreme_low + prob_more_extreme_high
+# out: 1.0091999999999999
+
+# The above shows a second possible method for obtaining the p-value. 
+# These are pretty different, stability of these values with such a small sample size is an issue. 
+# We are essentially shading outside the lines below.
+
+upper_bound = obs_mean
+lower_bound = null_mean - (obs_mean - null_mean)
+# lower bound output: 67.3176574795
+
+plt.hist(null_vals)
+plt.axvline(x=lower_bound, color='red'); # where our sample mean falls on null dist
+plt.axvline(x=upper_bound, color = 'red'); # where our sample mean falls on null dist
+
+print(upper_bound, lower_bound)
+67.3176574795
+
+# The p-value that you obtain using the null from part 1 and the sample mean and sampling distribution standard deviation for a sample mean of size 5 from part 2 is:
+
+null_mean = 67.60  
+# this is another way to compute the standard deviation of the sampling distribution theoretically  
+std_sampling_dist = full_data.height.std()/np.sqrt(5)  
+num_sims = 10000
+
+null_sims = np.random.normal(null_mean, std_sampling_dist, num_sims)  
+low_ext = (null_mean - (sample1.height.mean() - null_mean))  
+high_ext = sample1.height.mean()  
+
+(null_sims > high_ext).mean() + (null_sims < low_ext).mean()
+
+
+# 4. Now imagine if you received the same sample mean as you calculated from the sample in question 1 above, but that you actually retrieved it from a sample of 300. 
+# What would the new standard deviation be for your sampling distribution for the mean of 300 values? 
+# Additionally, what would your new p-value be for choosing between the null and alternative hypotheses you set up? 
+# Simulate the sampling distribution for the mean of five values to see the shape and plot a histogram.
+
+sample2 = full_data.sample(300)
+obs_mean = sample2.height.mean()
+
+sample_dist_mean300 = []
+for _ in range(10000):
+    sample_of_300 = sample2.sample(300, inplace=True)
+    sample_mean = sample_of_300.height.mean()
+    sampling_dist_mean300.append(sample_mean)
+
+std_sampling_dist300 = np.std(sampling_dist_mean300)
+null_vals = np.random.normal(null_mean, std_sampling_dist300, 10000)
+
+upper_bound = obs_mean
+lower_bound = null_mean - (obs_mean - null_mean)
+
+plt.hist(null_vals)
+plt.axvline(x=lower_bound, color = 'red');
+plt.axvline(x=upper_bound, color = 'red');
+
+# for a two sided hypothesis, we want to look at anything 
+# more extreme from the null in both directions
+
+# probability of a statistic lower than observed
+prob_more_extreme_low = (null_vals < lower_bound).mean()
+    
+# probability a statistic is more extreme higher
+prob_more_extreme_high = (upper_bound < null_vals).mean()
+
+pval = prob_more_extreme_low + prob_more_extreme_high
+pval  # With such a large sample size, our sample mean that is super
+      # close will be significant at an alpha = 0.1 level.
+
+# output: 0.61370000000000002
+
+# Even with a very small difference between a sample mean and a hypothesized population mean, 
+# the difference will end up being significant with a very large sample size.
+
+
+# Multiple Tests
+# In this notebook, you will work with a similar dataset to the judicial dataset you were working with before. 
+# However, instead of working with decisions already being provided, you are provided with a p-value associated with each individual.
+
+# Here is a glimpse of the data you will be working with:
+
+import numpy as np
+import pandas as pd
+​
+df = pd.read_csv('judicial_dataset_pvalues.csv')
+df.head()
+defendant_id	actual	pvalue
+0	22574	innocent	0.294126
+1	35637	innocent	0.417981
+2	39919	innocent	0.177542
+3	29610	guilty	0.015023
+4	38273	innocent	0.075371
+
+# 1. Remember back to the null and alternative hypotheses for this example. Use that information to determine the answer for Quiz 1 and Quiz 2 below.
+# A p-value is the probability of observing your data or more extreme data, if the null is true. Type I errors are when you choose the alternative when the null is true, and vice-versa for Type II. Therefore, deciding an individual is guilty when they are actually innocent is a Type I error. The alpha level is a threshold for the percent of the time you are willing to commit a Type I error.
+
+# 2. If we consider each individual as a single hypothesis test, find the conservative Bonferroni corrected p-value we should use to maintain a 5% type I error rate.
+
+bonf_alpha = 0.05/df.shape[0]
+bonf_alpha
+6.86530275985171e-06
+
+# 3. What is the proportion of type I errors made if the correction isn't used? How about if it is used?
+
+# In order to find the number of type I errors made without the correction - we need to find all those that are actually innocent with p-values less than 0.05.
+
+df.query("actual == 'innocent' and pvalue < 0.05").count()[0]/df.shape[0] # If not used
+0.001510366607167376
+df.query("actual == 'innocent' and pvalue < @bonf_alpha").count()[0]/df.shape[0] # If used
+0.0
+
+# 4. Think about how hypothesis tests can be used, and why this example wouldn't exactly work in terms of being able to use hypothesis testing in this way.
+# This is looking at individuals, and that is more of the aim for machine learning techniques. Hypothesis testing and confidence intervals are for population parameters. 
+# Therefore, they are not meant to tell us about individual cases, and we wouldn't obtain p-values for individuals in this way. We could get probabilities, 
+# but that isn't the same as the probabilities associated with the relationship to sampling distributions as you have seen in these lessons.
+
+​
