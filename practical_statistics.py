@@ -901,12 +901,15 @@ par_data[par_data['actual'] == 'opens'].shape[0]/par_data.shape[0]
 
 # What is the impact of sample size?
 
+H0 (null hypothesis): mean = 67.6
+H1 (alternative hypothesis): mean != 67.6
+
 # 2. What is the population mean? Create a sample set of data using the below code. 
 # What is the sample mean? What is the standard deviation of the population? 
 # What is the standard deviation of the sampling distribution of the mean of five draws? 
 # Simulate the sampling distribution for the mean of five values to see the shape and plot a histogram.
 
-sample1 = full_data.sample(5)
+sample1 = full_data.sample(5) # sample
 sample1
 
 full_data.height.mean() # population mean
@@ -915,12 +918,12 @@ full_data.height.mean() # population mean
 sample1.height.mean() # sample mean
 # out: 67.8823
 
-sampling_dist_mean5 = []
+sampling_dist_mean5 = [] # the sampling distribution of the mean of five draws 
 sample_of_5 = sample1.sample(5, replace = True)
 sample_mean = sample_of_5.height.mean()
 sampling_dist_mean5.append(sample_mean)
 
-plt.hist(sampling_dist_mean5);
+plt.hist(sampling_dist_mean5); # plot of sampling distribution of the mean of five draws
 
 std_sampling_dist = np.std(sampling_dist_mean5)
 std_sampling_dist # standard deviation of the sampling distribution
@@ -930,23 +933,31 @@ std_sampling_dist # standard deviation of the sampling distribution
 # simulate values of the mean values that you would expect from the null hypothesis. 
 # Use these simulated values to determine a p-value to make a decision about your null and alternative hypotheses.
 
+H0 (null hypothesis): mean = 67.6
+H1 (alternative hypothesis): mean != 67.6
+
 null_mean = 67.60 # population mean from above
-null_vals = np.random.normal(null_mean, std_sampling_dist, 10000)
+null_vals = np.random.normal(null_mean, std_sampling_dist, 10000) # simulating values of the mean we would expect from the null hypothesis
+# function draws random samples from a normal (Gaussian) distribution
+# null_mean = mean/centre of distribution
+# std_sampling_dist = scale, std. dev (spread or width) of distribution
+# 10000 = number of samples drawn
 
 plt.hist(null_vals);
 plt.axvline(x=sample1.height.mean(), color = 'red'); # where our sample mean falls on null dist
 
-# for a two sided hypothesis, we want to look at anything 
-# more extreme from the null in both directions
+# for a two sided hypothesis, we want to look at anything more extreme from the null in both directions
 obs_mean = sample1.height.mean()
 # out: 67.8823425205
 
 # # probability of a statistic higher than observed
-prob_more_extreme_high = (null_vals > obs_mean).mean()
+prob_more_extreme_high = (null_vals > obs_mean).mean() # from the samples pulled in the np.random.normal function
 # out: 0.4071
 
 # # probability a statistic is more extreme lower
 prob_more_extreme_low = (null_mean - (obs_mean - null_mean) < null_vals).mean()
+# prob_more_extreme_low = (67.60 - (67.88 - 67.60) < null_vals).mean(), 67.32 < null_vals.mean()
+# probability of the statistic being lower than the mean of the null value mean pulled from random.normal
 # out: 0.6021
 
 pval = prob_more_extreme_low + prob_more_extreme_high
@@ -956,8 +967,9 @@ pval = prob_more_extreme_low + prob_more_extreme_high
 # These are pretty different, stability of these values with such a small sample size is an issue. 
 # We are essentially shading outside the lines below.
 
-upper_bound = obs_mean
+upper_bound = obs_mean # 67.8823425205
 lower_bound = null_mean - (obs_mean - null_mean)
+67.60 - (67.8823425205 - 67.60) = 
 # lower bound output: 67.3176574795
 
 plt.hist(null_vals)
@@ -965,9 +977,10 @@ plt.axvline(x=lower_bound, color='red'); # where our sample mean falls on null d
 plt.axvline(x=upper_bound, color = 'red'); # where our sample mean falls on null dist
 
 print(upper_bound, lower_bound)
-67.3176574795
+67.8823425205 67.3176574795
 
 # The p-value that you obtain using the null from part 1 and the sample mean and sampling distribution standard deviation for a sample mean of size 5 from part 2 is:
+1.009
 
 null_mean = 67.60  
 # this is another way to compute the standard deviation of the sampling distribution theoretically  
@@ -987,19 +1000,19 @@ high_ext = sample1.height.mean()
 # Simulate the sampling distribution for the mean of five values to see the shape and plot a histogram.
 
 sample2 = full_data.sample(300)
-obs_mean = sample2.height.mean()
+obs_mean = sample2.height.mean() # = 67.06
 
 sample_dist_mean300 = []
 for _ in range(10000):
     sample_of_300 = sample2.sample(300, inplace=True)
-    sample_mean = sample_of_300.height.mean()
+    sample_mean = sample_of_300.height.mean() # = 67.09
     sampling_dist_mean300.append(sample_mean)
 
-std_sampling_dist300 = np.std(sampling_dist_mean300)
+std_sampling_dist300 = np.std(sampling_dist_mean300) # = 0.185
 null_vals = np.random.normal(null_mean, std_sampling_dist300, 10000)
 
-upper_bound = obs_mean
-lower_bound = null_mean - (obs_mean - null_mean)
+upper_bound = obs_mean # 67.06
+lower_bound = null_mean - (obs_mean - null_mean) # 67.60 - (67.06 - 67.60) = 67.6 - (-.54) = 68.14
 
 plt.hist(null_vals)
 plt.axvline(x=lower_bound, color = 'red');
@@ -1018,7 +1031,7 @@ pval = prob_more_extreme_low + prob_more_extreme_high
 pval  # With such a large sample size, our sample mean that is super
       # close will be significant at an alpha = 0.1 level.
 
-# output: 0.61370000000000002
+# output: 1.9969000000000001
 
 # Even with a very small difference between a sample mean and a hypothesized population mean, 
 # the difference will end up being significant with a very large sample size.
@@ -1039,30 +1052,226 @@ defendant_id	actual	pvalue
 0	22574	innocent	0.294126
 1	35637	innocent	0.417981
 2	39919	innocent	0.177542
-3	29610	guilty	0.015023
+3	29610	guilty	    0.015023
 4	38273	innocent	0.075371
 
 # 1. Remember back to the null and alternative hypotheses for this example. Use that information to determine the answer for Quiz 1 and Quiz 2 below.
-# A p-value is the probability of observing your data or more extreme data, if the null is true. Type I errors are when you choose the alternative when the null is true, and vice-versa for Type II. Therefore, deciding an individual is guilty when they are actually innocent is a Type I error. The alpha level is a threshold for the percent of the time you are willing to commit a Type I error.
+# A p-value is the probability of observing your data for more extreme data, if the null is true. Type I errors are when you choose the alternative when the null is true, and vice-versa for Type II. Therefore, deciding an individual is guilty when they are actually innocent is a Type I error. The alpha level is a threshold for the percent of the time you are willing to commit a Type I error.
 
 # 2. If we consider each individual as a single hypothesis test, find the conservative Bonferroni corrected p-value we should use to maintain a 5% type I error rate.
 
 bonf_alpha = 0.05/df.shape[0]
 bonf_alpha
 6.86530275985171e-06
+# The new Type I Error rate after the Bonferroni correction.
 
 # 3. What is the proportion of type I errors made if the correction isn't used? How about if it is used?
 
-# In order to find the number of type I errors made without the correction - we need to find all those that are actually innocent with p-values less than 0.05.
+# In order to find the number of type I errors made without the correction - 
+# we need to find all those that are actually innocent with p-values less than 0.05.
 
 df.query("actual == 'innocent' and pvalue < 0.05").count()[0]/df.shape[0] # If not used
-0.001510366607167376
-df.query("actual == 'innocent' and pvalue < @bonf_alpha").count()[0]/df.shape[0] # If used
-0.0
+11 / 7283 = 0.0015 # The proportion of Type I Errors committed if the Bonferroni correction isn't used.
+
+df.query("actual == 'innocent' and pvalue < @bonf_alpha").count()[0]/df.shape[0]
+0.0 # The proportion of Type I Errors committed if the Bonferroni correction is used.
 
 # 4. Think about how hypothesis tests can be used, and why this example wouldn't exactly work in terms of being able to use hypothesis testing in this way.
+
 # This is looking at individuals, and that is more of the aim for machine learning techniques. Hypothesis testing and confidence intervals are for population parameters. 
 # Therefore, they are not meant to tell us about individual cases, and we wouldn't obtain p-values for individuals in this way. We could get probabilities, 
 # but that isn't the same as the probabilities associated with the relationship to sampling distributions as you have seen in these lessons.
 
 ​
+
+# 1. Match the following characteristics of this dataset:
+# total number of actions
+# number of unique users
+# sizes of the control and experiment groups (i.e., the number of unique users in each group)
+
+# total number of actions
+df.shape
+(8188, 4)
+
+# number of unique users
+df.nunique()
+timestamp    8188
+id           6328
+group           2
+action          2
+dtype: int64
+
+# size of control group and experiment group
+df.groupby('group').nunique()
+
+# 2. How long was the experiment run for?
+# Hint: the records in this dataset are ordered by timestamp in increasing order
+df.timestamp.max(), df.timestamp.min()
+('2017-01-18 10:24:08.629327', '2016-09-24 17:42:27.839496')
+
+# 3. What action types are recorded in this dataset?
+# (i.e., What are the unique values in the action column?)
+df.action.value_counts()
+view     6328
+click    1860
+
+# 5. Define the click through rate (CTR) for this experiment.
+df.query('action == "click"').id.nunique() / df.query('action == "view"').id.nunique()
+1860 / 6328 = 
+0.2939317319848293
+
+
+# Metric - Click Through Rate (CTR)
+
+# for the control group:
+control_df = df.query('group == "control"')
+# we can extract all the actions from the ctrl group like this.
+
+control_ctr = control_df.query('action == "click"').id.nunique() / control_df.query('action == "view"').id.nunique()
+# now to compute CTR, we will divide number of unique users, who actually clicked the explore courses button
+# by the total number of unique users who viewed the page
+# control_ctr = 0.2797
+
+# for the experiment group
+experiment_df = df.query('group == "experiment"')
+
+experiment_ctr = experiment_df.query('action == "click"').id.nunique() / experiment_df.query('action == "view"').id.nunique()
+# experiment_ctr = 0.3097
+
+obs_diff = experiment_ctr - control_ctr # observed difference
+# 0.0300
+
+# but is this result significant? maybe just due to chance?
+# let's bootstrap this sample to simulate the sampling distribution for the difference in proportions
+
+diffs = []
+for _ in range(10000):
+    b_samp = df.sample(df.shape[0], replace = True)
+    control_df = b.samp.query('group == "control"')
+    experiment_df = b.samp.query('group == "experiment"')
+    control_ctr = control_df.query('action == "click"').id.nunique() / control_df.query('action == "view"').id.nunique()
+    experiment_ctr = experiment_df.query('action == "click"').id.nunique() / experiment_df.query('action == "view"').id.nunique()
+    diffs.append(experiment_ctr - control_ctr)
+
+plt.hist(diffs);
+
+# finding the p-value:
+diffs = np.array(diffs)
+null_vals = np.random.normal(0, diffs.std(), diffs.size)
+
+plt.hist(null_vals)
+plt.axvline(x=obs_diff, color='red');
+
+(null_vals > obs_diff).mean() # all the nulls greater than the value of our statistic in favor of our alternative
+# p-value = 0.0053
+# with a p-value of approximately 0.5%, the difference in CTR for the 2 groups does appear to be significant
+# with a p-value of less than 0.01, it seems unlikely that our statistic is from the null
+# it looks like we can reject the null hypothesis and launch the new version of the home page
+
+
+# Enrollment rate
+
+# Get dataframe with all records from control group
+control_df = df.query('group == "control"')
+
+# Compute click through rate for control group
+control_ctr = control_df.query('action == "enroll"').id.nunique() / control_df.query('action == "view"').id.nunique()
+
+# Display click through rate
+control_ctr
+# 0.2364438839848676
+
+# Get dataframe with all records from control group
+experiment_df = df.query('group == "experiment"')
+
+# Compute click through rate for experiment group
+experiment_ctr = experiment_df.query('action == "enroll"').id.nunique() / experiment_df.query('action == "view"').id.nunique()
+
+# Display click through rate
+experiment_ctr
+# 0.2668693009118541
+
+# Compute the observed difference in click through rates
+obs_diff = experiment_ctr - control_ctr
+
+# Display observed difference
+obs_diff
+
+# Create a sampling distribution of the difference in proportions
+# with bootstrapping
+diffs = []
+size = df.shape[0]
+for _ in range(10000):
+    b_samp = df.sample(size, replace=True)
+    control_df = b_samp.query('group == "control"')
+    experiment_df = b_samp.query('group == "experiment"')
+    control_ctr = control_df.query('action == "enroll"').id.nunique() / control_df.query('action == "view"').id.nunique()
+    experiment_ctr = experiment_df.query('action == "enroll"').id.nunique() / experiment_df.query('action == "view"').id.nunique()
+    diffs.append(experiment_ctr - control_ctr)
+
+# Convert to numpy array
+diffs = np.array(diffs)
+
+# Plot sampling distribution
+plt.hist(diffs);
+
+# Simulate distribution under the null hypothesis
+null_vals = np.random.normal(0, diffs.std(), diffs.size)
+
+# Plot the null distribution
+plt.hist(null_vals);
+
+# Plot observed statistic with the null distibution
+plt.hist(null_vals);
+plt.axvline(obs_diff, c='red')
+
+# Compute p-value
+(null_vals > obs_diff).mean()
+# 0.018800000000000001
+
+
+# Average reading duration
+
+# the previous analyses were comparing proportions, with this, we will analyze diff in means
+
+# we only care about duration, so let's filter:
+views = df.query('action == "view"')
+
+reading_times = views.groupby(['id', 'group'])['duration'].mean()
+# let's count each unique user once, by finding their average reading duration, if they have visited the site more than once
+# we will also group by group
+
+reading_times = reading_times.reset_index()
+# nice to reset index so we keep column names
+
+# now we can find the average reading times for each group like this:
+control_mean = df.query('group == "control')['duration'].mean()
+experiment_mean = df.query('group == "experiment"')['duration'].mean()
+control_mean, experiment_mean
+# 115.4071, 130.9442
+
+obs_diff = experiment_mean - control_mean
+# 15.5371
+# it looks like users in the experiment group spent 15 sec more on course overview page than those in control
+
+# to see if this difference is significant, let's simulate the sampling distribution for the difference in mean reading durations with bootstrapping
+
+diffs = []
+for _ in range(10000):
+    b_samp = df.sample(df.shape[0], replace=True)
+    control_mean = b_samp.query('group == "control"')['duration'].mean()
+    experiment_mean = b_samp.query('group == "experiment"')['duration'].mean()
+    diffs.append(experiment_mean - control_mean)
+
+diffs = np.array(diffs)
+
+plt.hist(diffs);
+
+# now to find p-value, let's simulate distribution under the null and find the probability that our observed statistic came from this distribution
+null_vals = np.random.normal(0, diffs.std(), diffs.size)
+# create dist centered at 0, and having the same spread as our sampling dist
+
+plt.hist(null_vals)
+
+plt.axvline(x=obs_diff, color='red')
+
