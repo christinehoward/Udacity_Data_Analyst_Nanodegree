@@ -1275,3 +1275,229 @@ plt.hist(null_vals)
 
 plt.axvline(x=obs_diff, color='red')
 
+
+# Metric - Average Classroom Time
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+% matplotlib inline
+
+np.random.seed(42)
+
+df = pd.read_csv('classroom_actions.csv')
+df.head()
+
+# The total_days represents the total amount of time
+# each student has spent in classroom.
+# get the average classroom time for control group
+control_mean = df.query('group == "control"')['total_days'].mean()
+
+# # get the average classroom time for experiment group
+experiment_mean = df.query('group == "experiment"')['total_days'].mean()
+
+# # display average classroom time for each group
+control_mean, experiment_mean
+(73.368990384615387, 74.671593533487297)
+
+# compute observed difference in classroom time
+obs_diff = experiment_mean - control_mean
+
+# display observed difference
+obs_diff
+1.3026031488719099
+
+# create sampling distribution of difference in average classroom times
+# with boostrapping
+diffs = []
+for _ in range(10000):
+    b_samp = df.sample(df.shape[0], replace=True)
+    control_mean = b_samp.query('group == "control"')['total_days'].mean()
+    experiment_mean = b_samp.query('group == "experiment"')['total_days'].mean()
+    diffs.append(experiment_mean - control_mean)
+
+# convert to numpy array
+diffs = np.array(diffs)
+
+# plot sampling distribution
+plt.hist(diffs);
+
+# simulate distribution under the null hypothesis
+null_vals = np.random.normal(0, diffs.std(), diffs.size)
+
+# plot null distribution
+plt.hist(null_vals)
+
+# plot line for observed statistic
+plt.axvline(x=obs_diff, color='red')
+
+# compute p value
+(null_vals > obs_diff).mean()
+0.034500000000000003
+
+
+# Metric - Completion Rate
+
+# Create dataframe with all control records
+control_df = df.query('group == "control"')
+​
+# Compute completion rate
+control_ctr = control_df['completed'].mean()
+​
+# Display control complete rate
+control_ctr
+0.37199519230769229
+
+# Create dataframe with all experiment records
+experiment_df = df.query('group == "experiment"')
+​
+# Compute completion rate
+experiment_ctr = experiment_df['completed'].mean()
+​
+# Display experiment complete rate
+experiment_ctr
+0.39353348729792148
+
+# Compute observed difference in completion rates
+obs_diff = experiment_ctr - control_ctr
+​
+# Display observed difference in completion rates
+obs_diff
+0.02153829499022919
+# Create sampling distribution for difference in completion rates
+# with boostrapping
+diffs = []
+size = df.shape[0]
+for _ in range(10000):
+    b_samp = df.sample(size, replace=True)
+    control_df = b_samp.query('group == "control"')
+    experiment_df = b_samp.query('group == "experiment"')
+    control_ctr = control_df['completed'].mean()
+    experiment_ctr = experiment_df['completed'].mean()
+    diffs.append(experiment_ctr - control_ctr)
+
+# convert to numpy array
+diffs = np.array(diffs)
+# plot distribution
+plt.hist(diffs);
+
+# create distribution under the null hypothesis
+null_vals = np.random.normal(0, diffs.std(), diffs.size)
+# plot null distribution
+plt.hist(null_vals);
+​
+# plot line for observed statistic
+plt.axvline(obs_diff, c='red');
+
+# compute p value
+(null_vals > obs_diff).mean()
+0.084599999999999995
+
+
+# Fitting a regression line in python
+
+import pandas as pd
+import numpy as np 
+import statsmodels.api as sm 
+
+df = pd.read_csv('./house_price_area_only.csv')
+df.head()
+
+# need to add a column for our intercept before moving forward
+
+df['intercept'] = 1
+# providing the OLS method the y and x variables
+# OLS = ordinary least squares
+lm = sm.OLS(df['price']) # = y
+df[('intercept', area)]) # = list of x-variables
+
+lm = sm.OLS(df['price'], df[['intercept', area]])
+results = lm.fit()
+results.summary()
+
+# r-squared, closer it is to 1 = better fit line
+# the amt of variability in the response that can be explained by the exploratory variable
+
+# Housing Analysis
+# In this notebook, you will be replicating much of what you saw in this lesson using the housing data shown below.
+
+
+import numpy as np
+import pandas as pd
+import statsmodels.api as sm;
+​
+df = pd.read_csv('./house_price_area_only.csv')
+df.head()
+
+# 1. fit a linear model to predict price based on area. Obtain a summary of the results. Don't forget to add an intercept.
+
+df['intercept'] = 1
+​
+lm = sm.OLS(df['price'], df[['intercept', 'area']])
+results = lm.fit()
+results.summary()
+
+# Homes vs. Crime case study
+
+import numpy as np
+import pandas as pd
+import statsmodels.api as sms;
+from sklearn.datasets import load_boston
+import matplotlib.pyplot as plt
+%matplotlib inline
+
+boston_data = load_boston()
+df = pd.DataFrame()
+df['MedianHomePrice'] = boston_data.target
+df2 = pd.DataFrame(boston_data.data)
+df['CrimePerCapita'] = df2.iloc[:,0];
+df.head()
+
+# The Boston housing data is a built in dataset in the sklearn library of python. You will be using two of the variables from this dataset, which are stored in df. The median home price in thousands of dollars and the crime per capita in the area of the home are shown above.
+# 1. Use this dataframe to fit a linear model to predict the home price based on the crime rate. Use your output to answer the first quiz below. Don't forget an intercept.
+
+df['intercept'] = 1
+
+lm = smsOLD(df['MedianHomePrice'], df[['intercept', 'CrimePerCapita']])
+results = lm.fit()
+results.summary()
+
+# 2.Plot the relationship between the crime rate and median home price below.
+
+plt.scatter(df['CrimePerCapita'], df['MedianHomePrice']);
+plt.xlabel('Crime/Capita');
+plt.ylabel('Median Home Price');
+plt.title('Median Home Price vs. CrimePerCapita');
+
+## To show the line that was fit I used the following code from 
+## https://plot.ly/matplotlib/linear-fits/
+## It isn't the greatest fit... but it isn't awful either
+
+
+import plotly.plotly as py
+import plotly.graph_objs as go
+
+# MatPlotlib
+import matplotlib.pyplot as plt
+from matplotlib import pylab
+
+# Scientific libraries
+from numpy import arange,array,ones
+from scipy import stats
+
+xi = arange(0,100)
+A = array([xi, ones(100)])
+
+# (Almost) linear sequence
+y = df['MedianHomePrice']
+x = df['CrimePerCapita']
+
+# Generated linear fit
+slope, intercept, r_value, p_value, std_err = stats.linregress(x,y)
+line = slope*xi+intercept 
+
+plt.plot(x,y,'o', xi, line);
+plt.xlabel('Crime/Capita')
+plt.ylabel('Median Home Price')
+pylab.title('Median Home Price vs. CrimePerCapita')
+
