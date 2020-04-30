@@ -1501,3 +1501,145 @@ plt.xlabel('Crime/Capita')
 plt.ylabel('Median Home Price')
 pylab.title('Median Home Price vs. CrimePerCapita')
 
+
+# Fitting a multiple linear regression model
+
+import numpy as np
+import pandas as pd
+import statsmodels.api as sms;
+
+df = pd.read_csv('./data/house_prices.csv')
+df.head()
+
+# we will need to add all of our variables into our list for the x portion
+
+df['intercept'] = 1
+lm = sm.OLS(df['price'], df[['intercept', 'bathrooms', 'bedrooms', 'area']])
+# interested in predicting the price (left side)
+# on the right side, add all variables that are quantitative. adding categorical variables will break
+# lm = linear model
+# then we will fit the model (to what?)
+results = lm.fit()
+results.summary()
+
+
+# How does multiple linear regression (MLR) work?
+# using the same data from the above example
+
+df['intercept'] = 1
+lm = sm.OLS(df['price'], df[['intercept', 'bathrooms', 'bedrooms', 'area']])
+results = lm.fit()
+results.summary()
+
+# create x matrix, which will only contain the portions of the output we found with the coef, std err, etc. for the variables
+x = df[['intercept', 'bathrooms', 'bedrooms', 'area']]
+y = df['price']
+# y is just our response, so only the price
+# we will take x transpose, x (dot product of these 2 things), invert that, # then dot product with the 
+# transpose, then dot product with the response. That should give us our coefficient estimates.
+np.dot(np.dot(np.linalg.inv(np.dot(X.transpose(),X)),X.transpose()),y)
+# xtranspose multiplied by X, which is the dot product
+# then we want the dot product of x transpose again
+# then we want a final dot product with the response
+# need inverse of this np.dot(X.transpose(),X)
+# then we will multiply the transpose of that times the response
+
+# now we can see that our values match the summary table
+
+
+# Slope interpretation
+# for every one unit increase in x, the expected y increases by the slop, holding all else constant
+
+
+# Dummy variables for categorical variables
+
+# get a 1 if value exists in column, 0 if not
+# create columns for each neighborhood value
+# should do for each categorical values
+
+# pandas - get dummies
+pd.get_dummies(df['neighborhood'])
+
+# let's store this output:
+df[['A', 'B', 'C']] = pd.get_dummies(df['neighborhood'])
+
+# this was for neighborhood, now let's try for style
+# your categorical variables will always come back in alphabetical order
+
+df[['lodge', 'ranch', 'victorian']] = pd.get_dummies(['style'])
+# we need to drop one column, column we drop called baseline category
+
+# let's drop the victorian column and use the other 2
+df['intercept'] = 1
+lm = sm.OLS(df['price'], df[['intercept', 'lodge', 'ranch']])
+results = lm.fit()
+results.summary()
+
+# intercept means that if our home is a victorian home, we predict its price to be 1,046e+06 or $1,046,000
+# lodge is meant to be $741,100 less than a victorian, ranch is predicted $471,000 less than victorian
+# each is comparing with the baseline category (intercept, which in this case is victorian)
+
+
+# Dummy variables quiz
+
+import numpy as np
+import pandas as pd
+import statsmodels.api as sm;
+import matplotlib.pyplot as plt
+%matplotlib inline
+
+df = pd.read_csv('./house_prices.csv')
+df.head()
+
+# 1. Use the pd.get_dummies documentation to assist you with obtaining dummy variables for the neighborhood column. Then use join to add the dummy variables to your dataframe, df, and store the joined results in df_new.
+# Fit a linear model using all three levels of neighborhood neighborhood to predict the price. Don't forget an intercept.
+
+neighborhood_dummies = pd.get_dummies(df['neighborhood'])
+df_new = df.join(neighborhood_dummies)
+df_new.head()
+
+df_new['intercept'] = 1
+lm = sm.OLS(df_new['price'], df.new[['intercept', 'A', 'B', 'C']])
+results = lm.fit()
+results.summary()
+
+# 2. Now, fit an appropriate linear model for using neighborhood to predict the price of a home. 
+# Use neighborhood A as your baseline. 
+
+lm2 = sm.OLS(df_new['price'], df_new[['intercept', 'B', 'C']])
+results2 = lm2.fit()
+results2.summary()
+
+# 3. Run the two cells below to look at the home prices for the A and C neighborhoods. Add neighborhood B. 
+# This creates a glimpse into the differences that you found in the previous linear model.
+
+plt.hist(df_new.query("C == 1")['price'], alpha = 0.3, label = 'C');
+plt.hist(df_new.query("A == 1")['price'], alpha = 0.3, label = 'A');
+plt.legend()
+
+# 4. Now, add dummy variables for the style of house, as well as neighborhood. Use ranch as the baseline for the style. 
+# Additionally, add bathrooms and bedrooms to your linear model. Don't forget an intercept. Home prices are measured in dollars, and this dataset is not real.
+
+type_dummies = pd.get_dummies(df['style'])
+df_new = df_new.join(type_dummies)
+df_new.head()
+
+lm3 = sm.OLS(df_new['price'], df_new[['intercept', 'B', 'C', 'lodge', 'victorian', 'bedrooms', 'bathrooms']])
+results3 = lm3.fit()
+results3.summary()
+
+
+# Assumption of Linear Regression Models
+# our x-variables should be correlated with the response but not each other
+
+# in our last example, we can imagine that the area, # of bedrooms and # bathrooms would likely be correlated
+# can take a quick look at relationships using seaborn
+# in addition to the packages we read in before:
+import seaborn as seaborn
+import patsy import dmatrices 
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+
+sb.pairplot(df[['area', 'bedrooms', 'bathrooms']]) ;  # want to look at each of the 3 x-variables
+# allows us to view relationship between each of our variables
+# we see strong positive relationships in the graphs
+
