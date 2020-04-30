@@ -1591,7 +1591,8 @@ import matplotlib.pyplot as plt
 df = pd.read_csv('./house_prices.csv')
 df.head()
 
-# 1. Use the pd.get_dummies documentation to assist you with obtaining dummy variables for the neighborhood column. Then use join to add the dummy variables to your dataframe, df, and store the joined results in df_new.
+# 1. Use the pd.get_dummies documentation to assist you with obtaining dummy variables for the 
+# neighborhood column. Then use join to add the dummy variables to your dataframe, df, and store the joined results in df_new.
 # Fit a linear model using all three levels of neighborhood neighborhood to predict the price. Don't forget an intercept.
 
 neighborhood_dummies = pd.get_dummies(df['neighborhood'])
@@ -1643,3 +1644,154 @@ sb.pairplot(df[['area', 'bedrooms', 'bathrooms']]) ;  # want to look at each of 
 # allows us to view relationship between each of our variables
 # we see strong positive relationships in the graphs
 
+# fit a multiple linear regression line
+df['intercept'] = 1
+
+lm = sm.OLS(df['price'], df[['intercept', 'area', 'bedrooms', 'bathrooms']])
+results = lm.fit()
+results.summary()
+
+# although we would expect all area, bathrooms, bedrooms to have the same relationship with the response,
+# that is, as they increase, we would expect the response to increase, but bedrooms has a negative coefficient
+# associated with it. So even though price and bedroom have a positive relationship, this showed up negative.
+# this relationship is now counterintuitive to what we would expect. This is 1 potential side effect of having
+# collinearity in our model (flipped coeffecients from what you expect to be true)
+
+# VIFs - variance inflation factors, way of predicting our variables are correlated
+# using statsmodels we can calculate VIFs for each of our variables
+
+import seaborn as sb 
+from patsy import dmatrices # this allows us to create our equation from x and y,
+# and will give us matrices that we pass through this variance inflation factor function
+# which we read in through statsmodels
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+
+y, X = dmatrices(' - ', df, return_type='dataframe')
+y, x = dmatrices('price - intercept + area + bedrooms + bathrooms', df, return_type='dataframe')
+# may want to delete intercept to avoid duplicates
+y, X = dmatrices('price ~ area + bedrooms + bathrooms', df, return_type='dataframe')
+
+vif = pd.DataFrame()
+vif["VIF Factor"] = [variance_inflation_factor(X.values, i) for i in range(X.shape[1])]
+vif['features'] = X.columns
+vif 
+
+# if your VIF > 10, it's likely you have multicollinearity in your model
+# VIF: all other x variables - excluding xi - are used to predict then compute R2i
+
+
+# 3. Calculate the VIFs for each variable in your model. Use quiz 3 below to provide insights about the results of your VIFs. Here is the helpful post again, in case you need it!
+
+y, X = dmatrices('price ~ area + bedrooms + bathrooms', df, return_type = 'dataframe')
+​
+vif = pd.DataFrame()
+vif["VIF Factor"] = [variance_inflation_factor(X.values, i) for i in range(X.shape[1])]
+vif["features"] = X.columns 
+​
+vif
+
+# 4. Remove bathrooms from your above model. Refit the multiple linear regression model and re-compute the VIFs. Use the final quiz below to provide insights about your results.
+
+lm = sm.OLS(df['price'], df[['intercept', 'bedrooms', 'area']])
+results = lm.fit()
+results.summary()
+
+
+# How to add higher order terms
+
+# higher order terms: cubic, quadratics, interactions, where more than one variable is attached to a coefficient
+
+# we can achieve higher order terms by multiplying columns by one another
+
+df['bedrooms_squared'] = df['bedrooms']*df['bedrooms']
+# need to also include lower order terms as well
+
+df['intercept'] = 1
+sm.OLS(df['price'], df[['intercept', 'bedrooms', 'bedrooms_squared']])
+results = lm.fit()
+results.summary()
+
+# adding quadratic means we cannot interpret the coefficient for the bedrooms the same way we did earlier
+# this coefficient isnt predicted change in price for bedrooms any longer
+# change in price dependent on the starting and ending number of bedrooms  
+# changing from 3-4 isnt the same as changing from 5-6, so neither of these terms is easily interpreted
+# we could also add cubic term to our data set
+
+# interaction term: created when multiplying 2 or more x-variables by one another to add to linear model
+# let's create an interaction between the area and the number of bedrooms
+# again need to include lower order terms as well
+# here the interaction term is area_bed
+
+df['area_bed'] = df['area']*df['bedrooms']
+lm = sm.OLS(df['price'], df[['intercept', 'bedrooms', 'bedrooms_squared', 'bedrooms_cubed', 'area', 'area_bed']])
+
+# why would we include interaction term (looks like this: x1x2) into our model?
+# when adding interaction terms, youre considering the way that a variable x1 is related to your response is dependent on the value of x2
+# adding an interaction term helps our lines for different neighborhoods run parallel, the slopes closer to equal
+
+# Interpreting Coefficients
+# It is important that not only can you fit complex linear models, but that you then know which variables you can interpret.
+# In some cases, the coefficients of your linear regression models wouldn't be kept due to the lack of significance. 
+
+import numpy as np
+import pandas as pd
+import statsmodels.api as sm;
+
+df = pd.read_csv('./house_prices.csv')
+df.head()
+
+# Model 1
+# 1. For the first model, fit a model to predict price using neighborhood, style, and the area of the home. Use the output to match the correct values to the corresponding interpretation in quiz 1 below. Don't forget an intercept! You will also need to build your dummy variables, and don't forget to drop one of the columns when you are fitting your linear model. It may be easiest to connect your interpretations to the values in the first quiz by creating the baselines as neighborhood C and home style lodge.
+
+dummies1_df = pd.get_dummies(df['neighborhood'])
+dummies2_df = pd.get_dummies(df['style'])
+new_df = df.join(dummies1_df)
+newer_df = new_df.join(dummies2_df)
+newer_df.head()
+
+newer_df['intercept'] = 1
+lm = sm.OLS(newer_df['price'], newer_df[['intercept', 'A', 'B', 'ranch', 'victorian', 'area']])
+results = lm.fit()
+results.summary()
+
+# Model 2
+# 2. Now let's try a second model for predicting price. This time, use area and area squared to predict price. Also use the style of the home, but not neighborhood this time. You will again need to use your dummy variables, and add an intercept to the model. Use the results of your model to answer quiz questions 2 and 3.
+
+newer_df['area squared'] = newer_df['area']*newer_df['area']
+lm = sm.OLS(newer_df['price'], newer_df[['intercept', 'ranch', 'victorian', 'area squared', 'area']])
+results = lm.fit()
+results.summary()
+
+# Trying one more model, with neighborhoods also, responding to
+#   prompt in question 3
+lm = sm.OLS(newer_df['price'], newer_df[['intercept', 'A', 'B', 'ranch', 'victorian', 'area squared', 'area']])
+results = lm.fit()
+results.summary()
+
+# Notice the R-squared value is 0.919 again, same as in model #1, 
+#   and the area-squared coefficient remains very low
+
+
+# Logistic Regression
+# predicts with only 2 outcomes
+
+# linear: look at continuous numeric variable
+
+# Fitting Logistic Regression
+# logistic regression bounds our response in a probability 0-1
+# this helps to reduce issues like an 80ft. person or a house with negative value
+
+# need to change values to 0 or 1 (like in dummies)
+# linear model will produce probability of log odds instead of response itself
+
+# create dummy variables
+df[['no_fraud', 'fraud']] = pd.get_dummies(df['fraud'])
+
+# can drop final column
+df = df.drop('no_fraud', axis = 1)
+
+# for logistic regression we use the logit instead of ols
+df['intercept'] = 1
+sm.logit(df['fraud'], df[['intercept', 'duration']])
+results = logit_mod.fit()
+results.summary()
