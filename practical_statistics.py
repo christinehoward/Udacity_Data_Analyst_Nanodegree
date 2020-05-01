@@ -220,6 +220,7 @@ tests = np.random.binomial(10, 0.5, int(1e6))
 # proportion of tests that produced 4 heads
 (tests == 4).mean()
 0.205152
+
 4. Five biased coin flips with P(H) = 0.8 produce exactly five heads
 # simulate 1 million tests of five biased coin flips
 tests = np.random.binomial(5, 0.8, int(1e6))
@@ -318,13 +319,13 @@ students.mean()
 p = students.mean()
 p
 0.7142857142857143
-# 2. Use numpy's random.choice to simulate 5 draws from the students array. What is proportion of your sample drink coffee?
 
+# 2. Use numpy's random.choice to simulate 5 draws from the students array. What is proportion of your sample drink coffee?
 sample1 = np.random.choice(students, 5, replace=True)
 sample1.mean()
 0.59999999999999998
-# 3. Repeat the above to obtain 10,000 additional proportions, where each sample was of size 5. Store these in a variable called sample_props.
 
+# 3. Repeat the above to obtain 10,000 additional proportions, where each sample was of size 5. Store these in a variable called sample_props.
 sample_props = []
 for _ in range(10000):
     sample = np.random.choice(students, 5, replace=True)
@@ -1795,3 +1796,31 @@ df['intercept'] = 1
 sm.logit(df['fraud'], df[['intercept', 'duration']])
 results = logit_mod.fit()
 results.summary()
+
+
+# Fitting logistic regression
+
+import numpy as np
+import pandas as pd
+import statsmodels.api as sm
+
+
+df = pd.read_csv('./fraud_dataset.csv')
+df.head()
+
+# 1. As you can see, there are two columns that need to be changed to dummy variables. 
+# Replace each of the current columns to the dummy version. Use the 1 for weekday and True, and 0 otherwise.
+df['weekday'] = pd.get_dummies(df['day'])['weekday']
+df[['not_fraud', 'fraud']] = pd.get_dummies(df['fraud'])
+df = df.drop('not_fraud', axis=1)
+
+print(df['fraud'].mean())
+print(df['weekday'].mean())
+print(df.groupby('fraud').mean(['duration']))
+
+# 2. Now that you have dummy variables, fit a logistic regression model to predict if a transaction is fraud using both day and duration.
+df['intercept'] = 1
+log_mod = sm.Logit(df['fraud'], df[['intercept', 'weekday', 'duration']])
+results = log_mod.fit()
+results.summary()
+
