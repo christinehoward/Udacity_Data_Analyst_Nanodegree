@@ -1,5 +1,13 @@
 #CLEANING DATA
 
+#Finding missing data
+
+df.info()
+
+# OR
+
+df.isnull().sum()
+
 # Solving missing value issues by inputing means
 
 mean = df['view_duration'].mean()
@@ -50,8 +58,8 @@ df.drop_duplicates(inplace=True)
 df.duplicated()
 
 
-#Renaming Columns
-##Since we also previously changed our dataset to only include means of tumor features, the "_mean" at the end of each feature seems unnecessary. It just takes extra time to type in our analysis later. Let's come up with a list of new labels to assign to our columns.
+# Renaming Columns
+## Since we also previously changed our dataset to only include means of tumor features, the "_mean" at the end of each feature seems unnecessary. It just takes extra time to type in our analysis later. Let's come up with a list of new labels to assign to our columns.
 
 ## remove "_mean" from column names
 new_labels = []
