@@ -479,3 +479,29 @@ for rank_title, images in image_errors.items():
     df_list.append({'ranking': int(title_list.index(title) + 1),
                     'title' : title,
                     'poster_url': url})
+
+
+# Relational Databases and pandas
+# Imagine this notebook contains all of the gathering code from this entire lesson, plus the assessing and cleaning code done behind the scenes, and that the final product is a merged master DataFrame called df.
+import pandas as pd
+df = pd.read_csv('bestofrt_master.csv')
+df.head(3)
+
+# Connect to a database
+from sqlalchemy import create_engine
+
+# Create SQLAlchemy Engine and empty bestofrt database
+# bestofrt.db will not show up in the Jupyter Notebook dashboard yet
+engine = create_engine('sqlite:///bestofrt.db')
+
+# 2. Store pandas DataFrame in database
+# Store the data in the cleaned master dataset (bestofrt_master) in that database.
+
+# Store cleaned master DataFrame ('df') in a table called master in bestofrt.db
+# bestofrt.db will be visible now in the Jupyter Notebook dashboard
+
+# 3. Read database data into a pandas DataFrame
+# Read the brand new data in that database back into a pandas DataFrame.
+
+df_gather = pd.read_sql('SELECT * FROM master', engine)
+df_gather.head(3)
