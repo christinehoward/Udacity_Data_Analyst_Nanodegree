@@ -108,6 +108,11 @@ id_names.surname = id_names.surname.str.lower() # changing name to lowercase
 treatments_clean = pd.merge(treatments_clean, id_names, on=['given_name', 'surname']) # getting rid of name columns, replacing with id
 treatments_clean = treatments_clean.drop(['given_name', 'surname'], axis=1)
 
+# Patient ID should be the only duplicate column
+
+all_columns = pd.Series(list(patients_clean) + list(treatments_clean))
+all_columns[all_columns.duplicated()]
+
 
 # Cleaning for quality
 
