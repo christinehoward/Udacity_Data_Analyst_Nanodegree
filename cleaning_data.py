@@ -116,3 +116,127 @@ all_columns[all_columns.duplicated()]
 
 # Cleaning for quality
 
+# Zip code is a float not a string and Zip code has four digits sometimes
+
+# Define
+# Convert the zip code column's data type from a float to a string using astype, 
+# remove the '.0' using string slicing, and pad four digit zip codes with a leading 0.
+
+patients_clean.zip_code = patients_clean.zip_code.astype(str).str[:-2].str.pad(5, fillchar='0')
+
+# Reconvert NaNs entries that were converted to '0000n' by code above
+
+patients_clean.zip_code = patients_clean.zip_code.replace('0000n', np.nan)
+
+
+# Tim Neudorf height is 27 in instead of 72 in
+
+# Define
+# Replace height for rows in the patients table that have a height of 27 in (there is only one) with 72 in.
+
+# Code
+patients_clean.height = patients_clean.height.replace(27, 72)
+
+# Test
+# Should be empty
+patients_clean[patients_clean.height == 27]
+
+# confirm replacement worked
+patients_clean[patients_clean.surname == 'Neudorf']
+
+
+# Full state names sometimes, abbreviations other times
+
+# Define
+# Apply a function that converts full state name to state abbreviation for California, New York, Illinois, Florida, and Nebraska.
+
+# Code
+# Mapping from full state name to abbreviation
+state_abbrev = {'California': 'CA',
+                'New York': 'NY',
+                'Illinois': 'IL',
+                'Florida': 'FL',
+                'Nebraska': 'NE'}
+# function to apply
+def abbreviate_state(patient):
+    if patient['state'] in state_abbrev.keys():
+        abbrev = state_abbrev[patient['state']]
+        return abbrev
+    else:
+        return patient['state']
+patients_clean['state'] = patients_clean.apply(abbreviate_state, axis=1)
+
+
+# Dsvid Gustafsson
+
+# Define
+# Replace given name for rows in the patients table that have a given name of 'Dsvid' with 'David'.
+
+# Code
+patients_clean.given_name = patients_clean.given_name.replace('Dsvid', 'David')
+
+# Erroneous datatypes (assigned sex, state, zip_code, and birthdate columns) and Erroneous datatypes (auralin and novodra columns) and The letter 'u' in starting and ending doses for Auralin and Novodra
+
+# Define
+# Convert assigned sex and state to categorical data types. Zip code data type was already addressed above. Convert birthdate to datetime data type. Strip the letter 'u' in start dose and end dose and convert those columns to data type integer.
+
+# Code
+
+# to category
+patients_clean.assigned_sex = patients_clean.assigned_sex.astype('category')
+patients_clean.state = patients_clean.state.astype('category')
+
+# to datetime
+patients_clean.birthdate = pd.to_datetime(patients_clean.birthdate)
+
+# strip u and to integer
+treatments_clean.dose_start = treatments_clean.dose_start.str[:-1].astype('int')
+# OR
+treatments_clean.dose_end = treatments_clean.dose_end.str.strip('u').astype(int)
+
+
+# Multiple phone number formats
+
+# Define
+# Strip all " ", "-", "(", ")", and "+" and store each number without any formatting. Pad the phone number with a 1 if the length of the number is 10 digits (we want country code).
+
+# Code
+patients_clean.phone_number = patients_clean.phone_number.str.replace(r'\D+', '').str.pad(11, fillchar='1')
+
+
+# Default John Doe data
+
+# Define
+# Remove the non-recoverable John Doe records from the patients table.
+
+# Code
+patients_clean = patients_clean[patients_clean.surname != 'Doe']
+
+# Multiple records for Jakobsen, Gersten, Taylor
+
+# Define
+# Remove the Jake Jakobsen, Pat Gersten, and Sandy Taylor rows from the patients table. These are the nicknames, which happen to also not be in the treatments table (removing the wrong name would create a consistency issue between the patients and treatments table). These are all the second occurrence of the duplicate. These are also the only occurences of non-null duplicate addresses.
+
+# Code
+# tilde means not: http://pandas.pydata.org/pandas-docs/stable/indexing.html#boolean-indexing
+patients_clean = patients_clean[~((patients_clean.address.duplicated()) & patients_clean.address.notnull())]
+
+patients_clean[patients_clean.surname == 'Jakobsen']
+patients_clean[patients_clean.surname == 'Gersten']
+patients_clean[patients_clean.surname == 'Taylor']
+
+# kgs instead of lbs for Zaitseva weight
+
+# Define
+# Use advanced indexing to isolate the row where the surname is Zaitseva and convert the entry in its weight field from kg to lbs.
+
+# Code
+weight_kg = patients_clean.weight.min()
+mask = patients_clean.surname == 'Zaitseva'
+column_name = 'weight'
+patients_clean.loc[mask, column_name] = weight_kg * 2.20462
+
+# Test
+# # 48.8 shouldn't be the lowest anymore
+# patients_clean.weight.sort_values()
+
