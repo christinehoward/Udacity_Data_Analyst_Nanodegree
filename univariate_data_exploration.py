@@ -238,3 +238,38 @@ sb.distplot(pokemon['speed'])
 sb.distplot(pokemon['speed'], kde = False)
 # can turn off density curve by setting kde = False
 # without this, you can see histogram plotted alone, with counts, not proportions, on y-axis
+
+
+# Histogram practice
+
+# prerequisite package imports
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sb
+
+%matplotlib inline
+
+from solutions_univ import histogram_solution_1
+
+# We'll continue working with the Pokémon dataset in this workspace.
+
+pokemon = pd.read_csv('./data/pokemon.csv')
+pokemon.head()
+
+# Task: Pokémon have a number of different statistics that describe their combat capabilities. 
+# Here, create a histogram that depicts the distribution of 'special-defense' values taken. 
+# Hint: Try playing around with different bin width sizes to see what best depicts the data.
+
+plt.hist(data=pokemon, x='special-defense', bins=20);
+
+bins = np.arange(0, pokemon['special-defense'].max()+5, 10)
+plt.hist(data=pokemon, x='special-defense', bins=bins);
+
+sb.distplot(pokemon['special-defense'], kde=False);
+
+# I've used matplotlib's hist function to plot the data. I have also used numpy's arange function to set the bin edges. 
+# A bin size of 5 hits the main cut points, revealing a smooth, but skewed curves. 
+# Are there similar characteristics among Pokemon with the highest special defenses?
+
+
