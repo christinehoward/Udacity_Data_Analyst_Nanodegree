@@ -288,3 +288,148 @@ plt.subplot(1, 2, 2)
 bin_edges = np.arange(1.5, 12.5+1, 1)
 plt.hist(die_rolls, bins = bin_edges)
 plt.xticks(np.arange(2, 12+1, 1))
+
+
+# May wish to zoom in on the main bulk of the data, using axis limits
+# Can use matplotlib function xlim to set the upper/lower bins that will be displayed in plot
+bins = np.arange(0, pokemon['height'].max()+0.5, 0.5) 
+plt.hist(data = pokemon, x = 'height', bins = bins);
+plt.xlim((0, 6)); # takes an argument, list or tuple, with 2 values specifying limits
+# set access limits 0-6
+# also changed bin size in anticipation of this reduced access limit
+bins = np.arange(0, pokemon['height'].max()+0.2, 0.2) 
+
+
+# another example
+
+plt.figure(figsize = [10, 5])
+
+# histogram on left: full data
+plt.subplot(1, 2, 1)
+bin_edges = np.arange(0, df['skew_var'].max()+2.5, 2.5)
+plt.hist(data = df, x = 'skew_var', bins = bin_edges)
+
+# histogram on right: focus in on bulk of data < 35
+plt.subplot(1, 2, 2)
+bin_edges = np.arange(0, 35+1, 1)
+plt.hist(data = df, x = 'skew_var', bins = bin_edges)
+plt.xlim(0, 35) # could also be called as plt.xlim((0, 35))
+
+
+# Scales and transformations
+
+# may wish to change scaling
+# linear scaling versus logarithmic scaling
+    # log: differences on the scaled axis represent multiplicative differences, rather than arithmetic differences
+    # values need to be positive
+
+bins = np.arange(0, pokemon['weight'].max()+40, 40)
+plt.hist(data = pokemon, x = 'weight', bins = bins);
+plt.xscale('log'); # with only this line, we get an odd looking plot. bar heights are the same, but they are wider on the left than on right
+# we will try axis tranforming instead
+# want to use matplotlib's x-scale function
+# we want to set a string to a specific transform that we want to use
+# in this case, a logarithmic transform, therefore 'log'
+# we will need to work on the bin boundaries and axis ticks to make things clearer
+
+# first, we look at bins
+# log10 of these values are min -1 and max just under 3
+# these give us limits for bins 
+
+bins = 10 ** np.arange(-1, 3 + 0.1, 0.1)
+plt.hist(data = pokemon, x = 'weight', bins = bins);
+plt.xscale('log');
+# our bin edges will be 10 to the power of values between negative 1 and 3, so they are evenly spaced after taking logarithm
+# plot looks better, showing unimodal distribution, but let's edit tick marks
+
+bins = 10 ** np.arange(-1, 3 + 0.1, 0.1)
+ticks = [0.1, 1, 10, 100, 1000]
+plt.hist(data = pokemon, x = 'weight', bins = bins);
+plt.xscale('log');
+# start by writing out given ticks but may want more
+# we will go about a third of the way between the first and next values
+new_ticks = [0.1, 0.3, 1, 3, 10, 33, 100, 333, 1000]
+plt.xticks(ticks, labels);
+
+
+# Another example:
+plt.figure(figsize = [10, 5])
+
+# left histogram: data plotted in natural units
+plt.subplot(1, 2, 1)
+bin_edges = np.arange(0, data.max()+100, 100)
+plt.hist(data, bins = bin_edges)
+plt.xlabel('values')
+
+# right histogram: data plotted after direct log transformation
+plt.subplot(1, 2, 2)
+log_data = np.log10(data) # direct data transform
+log_bin_edges = np.arange(0.8, log_data.max()+0.1, 0.1)
+plt.hist(log_data, bins = log_bin_edges)
+plt.xlabel('log(values)')
+
+bin_edges = np.arange(0, data.max()+100, 100)
+plt.hist(data, bins = bin_edges)
+plt.xscale('log')
+
+bin_edges = 10 ** np.arange(0.8, np.log10(data.max())+0.1, 0.1)
+plt.hist(data, bins = bin_edges)
+plt.xscale('log')
+tick_locs = [10, 30, 100, 300, 1000, 3000]
+plt.xticks(tick_locs, tick_locs)
+
+def sqrt_trans(x, inverse = False):
+    """ transformation helper function """
+    if not inverse:
+        return np.sqrt(x)
+    else:
+        return x ** 2
+
+bin_edges = np.arange(0, sqrt_trans(data.max())+1, 1)
+plt.hist(data.apply(sqrt_trans), bins = bin_edges)
+tick_locs = np.arange(0, sqrt_trans(data.max())+10, 10)
+plt.xticks(tick_locs, sqrt_trans(tick_locs, inverse = True).astype(int))
+
+
+# Scales/transformations practice
+
+def scales_solution_1():
+    """
+    Solution for Question 1 in scales and transformation practice: create a
+    histogram of Pokemon heights.
+    """
+    sol_string = ["There's a very long tail of Pokemon heights. Here, I've",
+                  "focused in on Pokemon of height 6 meters or less, so that I",
+                  "can use a smaller bin size to get a more detailed look at",
+                  "the main data distribution."]
+    print((" ").join(sol_string))
+
+    # data setup
+    pokemon = pd.read_csv('./data/pokemon.csv')
+
+    bins = np.arange(0, pokemon['height'].max()+0.2, 0.2)
+    plt.hist(data = pokemon, x = 'height', bins = bins)
+    plt.xlim((0,6))
+
+
+def scales_solution_2():
+    """
+    Solution for Question 2 in scales and transformation practice: create a
+    histogram of Pokemon weights.
+    """
+    sol_string = ["Since Pokemon weights are so skewed, I used a log transformation",
+                  "on the x-axis. Bin edges are in increments of 0.1 powers of ten,",
+                  "with custom tick marks to demonstrate the log scaling."]
+    print((" ").join(sol_string))
+
+    # data setup
+    pokemon = pd.read_csv('./data/pokemon.csv')
+
+    bins = 10 ** np.arange(-1, 3.0+0.1, 0.1)
+    ticks = [0.1, 0.3, 1, 3, 10, 30, 100, 300, 1000]
+    labels = ['{}'.format(val) for val in ticks]
+
+    plt.hist(data = pokemon, x = 'weight', bins = bins)
+    plt.xscale('log')
+    plt.xticks(ticks, labels)
+    plt.xlabel('Weight (kg)')
