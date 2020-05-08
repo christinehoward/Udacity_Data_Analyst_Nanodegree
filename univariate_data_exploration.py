@@ -273,3 +273,18 @@ sb.distplot(pokemon['special-defense'], kde=False);
 # Are there similar characteristics among Pokemon with the highest special defenses?
 
 
+# Choosing a plot for discrete data
+
+plt.figure(figsize = [10, 5])
+
+# histogram on the left, bin edges on integers
+plt.subplot(1, 2, 1)
+bin_edges = np.arange(2, 12+1.1, 1) # note `+1.1`, see below
+plt.hist(die_rolls, bins = bin_edges)
+plt.xticks(np.arange(2, 12+1, 1))
+
+# histogram on the right, bin edges between integers
+plt.subplot(1, 2, 2)
+bin_edges = np.arange(1.5, 12.5+1, 1)
+plt.hist(die_rolls, bins = bin_edges)
+plt.xticks(np.arange(2, 12+1, 1))
