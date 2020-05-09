@@ -309,4 +309,132 @@ def categorical_solution_1():
 ## multiple copies of the same type of plot visualized on diff subsets of the data
 ## good for breaking down potentially complex patterns into simpler parts 
 ## especially useful for categorical variable with lots of levels
-## 
+
+# use seaborn's facetgrid
+g = sb.FacetGrid(data = fuel_econ, col = 'VClass', col_wrap = 3);
+# for whatever plot we facet with, there will be 1 level of the plot made for each vehicle class
+g.map(plt.hist, 'comb', bins = bins) # then we say what kind of grid we want
+# then variable on x-axis (comb)
+# grids will be plotted with default 10 bins
+bins = np.arange(12, 58+2, 2) # add bins
+# then add col wrap to limit number of facets plotted next to each other
+
+
+# Adaptations of univariate plots
+
+# adaptation of bar charts
+base_color = sb.color_palette()[0]
+b.barplot(data = fuel_econ, x = 'VClass', y = 'comb', color = base_color, errwidth = 0);
+plt.xticks(rotation = 15);
+plt.ylabel('avg comb fuel effec.')
+# we will get error bars in the end result (for the mean)
+# if we do not want these, set errwidth = 0 as above
+# could also set the bars to show std dev of data, using ci = 'sd' (replacing errwidth)
+
+
+# Line plots
+# why line instead of bar?
+        # interested in relative change
+        # empahsize trends across x-values
+plt.errorbar(data = fuel_econ, x = 'VClass', y - 'comb')
+plt.xticks(rotation = 15)
+plt.ylabel('avg...');
+# in order to use error bar, all data needs to be sorted by x variable and we only have 1 y value for each x value
+
+# first, set bin edges and centers
+bins_e = np.arange(0.6, 7+0.2, 0.2) #edges
+bins_c = bins_e[:-1] + 0.1 #centers are needed so point values are plotted in accurate positions
+# leaving out final bin center as that will be an edge and not have a center
+displ_binned = pd.cut(fuel_econ['displ'], bins_e, include_lowest = True)
+comb_mean = fuel_econ['comb'].groupby(displ_binned).mean() # use pandas cut to find out in which bin each data point should be used in
+# first argument: series to be sliced, 2nd argument, set of bins
+# final makes sure that the lowest values are included in the bins
+# then use groupby to group displacement bins, then take the mean of points that fall in each
+
+plt.errorbar(x = bins_c, y = comb_mean);
+plt.xlabel('Displacement (1)')
+plt.ylabel('avg...');
+comb_mean = fuel_econ['comb'].groupby(displ_binned).mean()
+comb_std = fuel_econ['comb'].groupby(displ_binned).std() # with error bar can also plot std dev of fuel effeciencies
+
+
+# additional plot quiz solution
+
+def additionalplot_solution_1():
+    """
+    Solution for Question 1 in additional plots practice: plot the distribution
+    of combined fuel efficiencies for each manufacturer with at least 80 cars.
+    """
+    sol_string = ["Due to the large number of manufacturers to plot, I've gone",
+                  "with a faceted plot of histograms rather than a single figure",
+                  "like a box plot. As part of setting up the FacetGrid object, I",
+                  "have sorted the manufacturers by average mileage, and wrapped",
+                  "the faceting into a six column by three row grid. One interesting",
+                  "thing to note is that there are a very large number of BMW cars",
+                  "in the data, almost twice as many as the second-most prominent",
+                  "maker, Mercedes-Benz. One possible refinement could be to change",
+                  "the axes to be in terms of relative frequency or density to",
+                  "normalize the axes, making the less-frequent manufacturers",
+                  "easier to read."]
+    print((" ").join(sol_string))
+
+    # data setup
+    fuel_econ = pd.read_csv('./data/fuel_econ.csv')
+    
+    THRESHOLD = 80
+    make_frequency = fuel_econ['make'].value_counts()
+    idx = np.sum(make_frequency > THRESHOLD)
+
+    most_makes = make_frequency.index[:idx]
+    fuel_econ_sub = fuel_econ.loc[fuel_econ['make'].isin(most_makes)]
+
+    make_means = fuel_econ_sub.groupby('make').mean()
+    comb_order = make_means.sort_values('comb', ascending = False).index
+
+    # plotting
+    g = sb.FacetGrid(data = fuel_econ_sub, col = 'make', col_wrap = 6, size = 2,
+                     col_order = comb_order)
+    # try sb.distplot instead of plt.hist to see the plot in terms of density!
+    g.map(plt.hist, 'comb', bins = np.arange(12, fuel_econ_sub['comb'].max()+2, 2))
+    g.set_titles('{col_name}')
+
+
+def additionalplot_solution_2():
+    """
+    Solution for Question 2 in additional plots practice: plot the average
+    combined fuel efficiency for each manufacturer with at least 80 cars.
+    """
+    sol_string = ["Seaborn's barplot function makes short work of this exercise.",
+                  "Since there are a lot of 'make' levels, I've made it a horizontal",
+                  "bar chart. In addition, I've set the error bars to represent the",
+                  "standard deviation of the car mileages."]
+    print((" ").join(sol_string))
+
+    # data setup
+    fuel_econ = pd.read_csv('./data/fuel_econ.csv')
+    
+    THRESHOLD = 80
+    make_frequency = fuel_econ['make'].value_counts()
+    idx = np.sum(make_frequency > THRESHOLD)
+
+    most_makes = make_frequency.index[:idx]
+    fuel_econ_sub = fuel_econ.loc[fuel_econ['make'].isin(most_makes)]
+
+    make_means = fuel_econ_sub.groupby('make').mean()
+    comb_order = make_means.sort_values('comb', ascending = False).index
+
+    # plotting
+    base_color = sb.color_palette()[0]
+    sb.barplot(data = fuel_econ_sub, x = 'comb', y = 'make',
+               color = base_color, order = comb_order, ci = 'sd')
+    plt.xlabel('Average Combined Fuel Eff. (mpg)')
+
+
+# Plot types
+
+# scatterplots: 2 quant variables
+# clustered bar charts: 2 qual variables
+# heat maps: 2d histograms/bar charts
+# violin/box plots: used to show relationship between 1 quant/1 qual variable
+# faceting multiple univariate plots across subsets of second variable, using 2nd variable's mean instead of count
+# barcharts/line plots: show changes in value across time
